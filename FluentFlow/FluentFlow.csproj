@@ -8,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Authors>DimaLab</Authors>
+    <Product>FluentFlow</Product>
+    <Description>Windows media controller with a taskbar audio visualizer</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,6 +6,22 @@ lets you control it, and gives you a Windows 11 style volume flyout.
 
 Inspired by [FluentFlyout](https://github.com/unchihugo/FluentFlyout).
 
+## Screenshots
+
+The visualizer on the taskbar (a real capture, enlarged 3x):
+
+![Taskbar widget](docs/taskbar-widget.png)
+
+The player window and the volume flyout (sample data):
+
+<p>
+  <img src="docs/player.png" alt="Player window" width="340">
+</p>
+<p>
+  <img src="docs/flyout-dark.png" alt="Volume flyout, dark theme" width="368">
+  <img src="docs/flyout-light.png" alt="Volume flyout, light theme" width="368">
+</p>
+
 ## Features
 
 - **Taskbar widget.** A mirrored spectrum visualizer docked next to the notification area. Click it to open the
@@ -16,6 +32,11 @@ Inspired by [FluentFlyout](https://github.com/unchihugo/FluentFlyout).
   (arrows, Esc) and the name of the current output device. Follows the Windows light/dark theme and accent colour.
 - **Start with Windows.** A per-user entry (`HKCU\...\Run`), no elevation. Respects Task Manager's *Startup apps* switch.
 - **Fallback.** If the taskbar can't host the widget, the player is shown as an ordinary window instead.
+
+## Download
+
+Grab `FluentFlow-win-x64.zip` from the [Releases](../../releases) page, unzip it and run `FluentFlow.exe`.
+It needs the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ## Requirements
 
@@ -78,6 +99,10 @@ dotnet test FluentFlow.slnx
 | `FluentFlow/Services` | Media session, audio capture and FFT, system volume, theme, startup registration |
 | `FluentFlow/Resources` | Styles and Windows 11 style resources |
 | `FluentFlow.Tests` | Unit tests for the geometry |
+
+## License
+
+[MIT](LICENSE)
 
 ## Privacy
 

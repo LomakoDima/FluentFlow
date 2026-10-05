@@ -3,6 +3,7 @@
 [Oo]bj/
 [Pp]ublish/
 artifacts/
+dist/
 
 # Visual Studio / editors
 .vs/
