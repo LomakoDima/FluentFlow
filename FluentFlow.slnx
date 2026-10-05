@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FluentFlow.Tests/FluentFlow.Tests.csproj" />
+  <Project Path="FluentFlow/FluentFlow.csproj" />
+</Solution>

@@ -1,0 +1,18 @@
+# Let Git normalise line endings; keep Windows-only script types as CRLF.
+* text=auto
+
+*.cs text diff=csharp
+*.xaml text
+*.csproj text
+*.slnx text
+*.manifest text
+*.md text diff=markdown
+*.yml text
+*.json text
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.ico binary

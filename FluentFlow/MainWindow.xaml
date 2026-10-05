@@ -1,0 +1,119 @@
+<Window x:Class="FluentFlow.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:FluentFlow.Controls"
+        Title="FluentFlow" Width="340" Height="180"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" ShowActivated="True"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        FontFamily="Segoe UI" Foreground="{StaticResource PrimaryTextBrush}"
+        UseLayoutRounding="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1" CornerRadius="16" Padding="14,12,14,13">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="72" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="72" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border CornerRadius="10" Background="#CE725B">
+                    <Image Stretch="UniformToFill" AutomationProperties.Name="Album artwork">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Source" Value="{Binding CurrentMedia.Artwork}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentMedia.Artwork}" Value="{x:Null}">
+                                        <Setter Property="Source" Value="{StaticResource FallbackArtwork}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                        <Image.Clip>
+                            <RectangleGeometry Rect="0,0,72,72" RadiusX="10" RadiusY="10" />
+                        </Image.Clip>
+                    </Image>
+                </Border>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,52,0">
+                    <TextBlock Text="{Binding CurrentMedia.PlaybackLabel}" ToolTip="{Binding CurrentMedia.StatusMessage}"
+                               FontSize="9" FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentBrush}" Margin="0,0,0,3" />
+                    <TextBlock Text="{Binding CurrentMedia.Title}" FontSize="16" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" ToolTip="{Binding CurrentMedia.Title}" />
+                    <TextBlock Text="{Binding CurrentMedia.Artist}" TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding CurrentMedia.Artist}" FontSize="12" Margin="0,2,0,0"
+                               Foreground="{StaticResource SecondaryTextBrush}" />
+                </StackPanel>
+                <!-- No title bar: the window drags by its background, and these two sit in the corner. -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0,-6,-6,0">
+                    <Button x:Name="MinimizeButton" Style="{StaticResource WindowButtonStyle}" Content="&#xE921;"
+                            Width="24" Height="24" Click="Minimize_Click" ToolTip="Minimize" AutomationProperties.Name="Minimize" />
+                    <Button Style="{StaticResource WindowButtonStyle}" Content="&#xE8BB;"
+                            Width="24" Height="24" Click="Close_Click" ToolTip="Close" AutomationProperties.Name="Close" Margin="2,0,0,0" />
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="2">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Style="{StaticResource IconButtonStyle}" Content="&#xE892;" Width="34" Height="34"
+                            Click="Previous_Click" IsEnabled="{Binding CurrentMedia.CanPrevious}"
+                            ToolTip="Previous track" ToolTipService.ShowOnDisabled="True"
+                            AutomationProperties.Name="Previous track" />
+                    <Button Style="{StaticResource PlayButtonStyle}" Click="PlayPause_Click" Margin="8,0"
+                            Width="40" Height="40"
+                            IsEnabled="{Binding CurrentMedia.CanPlayPause}"
+                            ToolTip="{Binding CurrentMedia.PlayPauseDescription}" ToolTipService.ShowOnDisabled="True"
+                            AutomationProperties.Name="{Binding CurrentMedia.PlayPauseDescription}">
+                        <TextBlock FontFamily="Segoe Fluent Icons" FontSize="17">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="&#xE768;" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentMedia.IsPlaying}" Value="True">
+                                            <Setter Property="Text" Value="&#xE769;" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Button>
+                    <Button Style="{StaticResource IconButtonStyle}" Content="&#xE893;" Width="34" Height="34"
+                            Click="Next_Click" IsEnabled="{Binding CurrentMedia.CanNext}"
+                            ToolTip="Next track" ToolTipService.ShowOnDisabled="True"
+                            AutomationProperties.Name="Next track" />
+                </StackPanel>
+                <StackPanel x:Name="VolumePanel" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="VolumeControl" Style="{StaticResource IconButtonStyle}" Width="34" Height="34"
+                            Click="Volume_Click"
+                            ToolTip="{Binding VolumeDescription}"
+                            AutomationProperties.Name="Volume and output device">
+                        <TextBlock FontFamily="Segoe Fluent Icons" FontSize="16" Text="{Binding VolumeIcon}" />
+                    </Button>
+                    <!-- Zero-size in layout; opens as its own window anchored to the volume button. -->
+                    <controls:FlyoutPopup x:Name="VolumeFlyoutPopup">
+                        <controls:VolumeFlyout />
+                    </controls:FlyoutPopup>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="4" VerticalAlignment="Bottom">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="5" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ProgressBar Style="{StaticResource PlaybackProgressStyle}" Minimum="0"
+                             Maximum="{Binding CurrentMedia.ProgressMaximum}" Value="{Binding CurrentMedia.ProgressValue, Mode=OneWay}"
+                             AutomationProperties.Name="Track progress" />
+                <TextBlock Grid.Row="2" Text="{Binding CurrentMedia.CurrentTime}" Style="{StaticResource TimeLabelStyle}" />
+                <TextBlock Grid.Row="2" Text="{Binding CurrentMedia.TotalTime}" Style="{StaticResource TimeLabelStyle}"
+                           HorizontalAlignment="Right" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

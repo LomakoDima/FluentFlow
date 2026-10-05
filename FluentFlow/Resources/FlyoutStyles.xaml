@@ -1,0 +1,206 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Dark defaults. SystemThemeService replaces these with the real Windows theme and accent at startup. -->
+    <SolidColorBrush x:Key="FlyoutSurfaceBrush" Color="#F72C2C2C" />
+    <SolidColorBrush x:Key="FlyoutBorderBrush" Color="#66757575" />
+    <SolidColorBrush x:Key="FlyoutDividerBrush" Color="#15FFFFFF" />
+    <SolidColorBrush x:Key="FlyoutTextBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="FlyoutSecondaryTextBrush" Color="#C5FFFFFF" />
+    <SolidColorBrush x:Key="FlyoutHoverBrush" Color="#0FFFFFFF" />
+    <SolidColorBrush x:Key="FlyoutPressedBrush" Color="#0AFFFFFF" />
+    <SolidColorBrush x:Key="FlyoutTrackBrush" Color="#8BFFFFFF" />
+    <SolidColorBrush x:Key="FlyoutThumbFaceBrush" Color="#FF454545" />
+    <SolidColorBrush x:Key="FlyoutThumbStrokeBrush" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="FlyoutAccentBrush" Color="#FF60CDFF" />
+
+    <!-- Keyboard focus ring, drawn by WPF only for keyboard-initiated focus. -->
+    <Style x:Key="FlyoutFocusVisualStyle">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-1" BorderBrush="{DynamicResource FlyoutAccentBrush}" BorderThickness="2"
+                            CornerRadius="6" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FlyoutIconButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource FlyoutTextBrush}" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FlyoutFocusVisualStyle}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="6">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Surface" Property="Background" Value="{DynamicResource FlyoutHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Surface" Property="Background" Value="{DynamicResource FlyoutPressedBrush}" />
+                            <Setter Property="Opacity" Value="0.8" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FlyoutSliderStyle" TargetType="Slider">
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="1" />
+        <Setter Property="SmallChange" Value="0.01" />
+        <Setter Property="LargeChange" Value="0.1" />
+        <Setter Property="TickFrequency" Value="0.01" />
+        <Setter Property="IsSnapToTickEnabled" Value="True" />
+        <Setter Property="IsMoveToPointEnabled" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FlyoutFocusVisualStyle}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Height="32" Background="Transparent">
+                        <Track x:Name="PART_Track" Orientation="Horizontal"
+                               Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value}">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge" Focusable="False" IsTabStop="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Grid Background="Transparent">
+                                                <Border Height="4" CornerRadius="2" VerticalAlignment="Center"
+                                                        Background="{DynamicResource FlyoutAccentBrush}" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Width="20" Height="20" Focusable="False">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid Background="Transparent">
+                                                <Ellipse Fill="{DynamicResource FlyoutThumbFaceBrush}"
+                                                         Stroke="{DynamicResource FlyoutThumbStrokeBrush}" StrokeThickness="1" />
+                                                <Ellipse x:Name="Dot" Width="12" Height="12"
+                                                         Fill="{DynamicResource FlyoutAccentBrush}" />
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Dot" Property="Width" Value="14" />
+                                                    <Setter TargetName="Dot" Property="Height" Value="14" />
+                                                </Trigger>
+                                                <Trigger Property="IsDragging" Value="True">
+                                                    <Setter TargetName="Dot" Property="Width" Value="10" />
+                                                    <Setter TargetName="Dot" Property="Height" Value="10" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge" Focusable="False" IsTabStop="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Grid Background="Transparent">
+                                                <Border Height="4" CornerRadius="2" VerticalAlignment="Center"
+                                                        Background="{DynamicResource FlyoutTrackBrush}" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Windows 11 context menu: rounded surface with a shadow, 32 px rows with a rounded hover plate. -->
+    <Style x:Key="FlyoutContextMenuStyle" TargetType="ContextMenu">
+        <Setter Property="Foreground" Value="{DynamicResource FlyoutTextBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="MinWidth" Value="180" />
+        <!-- The transparent margin below holds the shadow; shift the menu so its visible edge sits at the cursor. -->
+        <Setter Property="HorizontalOffset" Value="-12" />
+        <Setter Property="VerticalOffset" Value="-12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Margin="12" Background="{DynamicResource FlyoutSurfaceBrush}"
+                            BorderBrush="{DynamicResource FlyoutBorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="0,4" SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.32" Color="Black" />
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FlyoutMenuItemStyle" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource FlyoutTextBrush}" />
+        <Setter Property="Cursor" Value="Arrow" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Plate" Margin="4,2" Height="32" CornerRadius="4" Background="Transparent"
+                            SnapsToDevicePixels="True">
+                        <Grid Margin="8,0,16,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter ContentSource="Icon" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                            <TextBlock x:Name="Check" Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="14"
+                                       VerticalAlignment="Center" Visibility="Collapsed"
+                                       Foreground="{DynamicResource FlyoutAccentBrush}" />
+                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
+                                              VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Check" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource FlyoutHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource FlyoutPressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FlyoutMenuSeparatorStyle" TargetType="Separator">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Margin="12,4" Background="{DynamicResource FlyoutDividerBrush}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
