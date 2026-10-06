@@ -15,9 +15,11 @@ public sealed class TaskbarWidgetHost : IDisposable
 {
     private const double GapFromNeighbours = 4; // DIPs
     private const double VerticalPadding = 2;
-    private const double MinimumWidth = 72;
     private const int ScanEveryTicks = 3;
+    private readonly AppSettings _settings;
+    private readonly MediaSessionService _media;
     private readonly AudioVisualizerService _visualizer;
+    private readonly Dispatcher _dispatcher;
     private readonly TaskbarButtonScanner _scanner = new();
     private readonly DispatcherTimer _timer;
     private TaskbarWidgetWindow? _window;
@@ -29,15 +31,21 @@ public sealed class TaskbarWidgetHost : IDisposable
     private int _ticks;
     private bool _disposed;
 
-    public TaskbarWidgetHost(AudioVisualizerService visualizer, Dispatcher dispatcher)
+    public TaskbarWidgetHost(AppSettings settings, MediaSessionService media, AudioVisualizerService visualizer, Dispatcher dispatcher)
     {
+        _settings = settings;
+        _media = media;
         _visualizer = visualizer;
+        _dispatcher = dispatcher;
+        // A setting changed (alignment, size, ...): re-place the widget now instead of at the next poll.
+        _settings.PropertyChanged += (_, _) => RequestLayout();
         // Polling is what keeps this robust: taskbar size, tray width, DPI and Explorer restarts have no common event.
-        _timer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => Tick(), dispatcher);
+        _timer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Normal, (_, _) => Tick(), dispatcher);
         _timer.Stop();
     }
 
     public event EventHandler? Clicked;
+    public event EventHandler? SettingsRequested;
     public event EventHandler? ExitRequested;
     public event EventHandler? AttachedChanged;
 
@@ -87,7 +95,7 @@ public sealed class TaskbarWidgetHost : IDisposable
         TaskbarWidgetWindow? window = null;
         try
         {
-            window = new TaskbarWidgetWindow(_visualizer);
+            window = new TaskbarWidgetWindow(_settings, _media, _visualizer);
             var hwnd = new WindowInteropHelper(window).EnsureHandle();
 
             // Per the SetParent contract: switch popup -> child *before* reparenting.
@@ -109,7 +117,9 @@ public sealed class TaskbarWidgetHost : IDisposable
             _scanner.Reset();
             _ticks = 0;
             window.Clicked += (_, _) => Clicked?.Invoke(this, EventArgs.Empty);
+            window.SettingsRequested += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
             window.ExitRequested += (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty);
+            window.AppearanceChanged += (_, _) => RequestLayout();
             window.Closed += (sender, _) => { if (ReferenceEquals(sender, _window)) ForgetWindow(); };
             return true;
         }
@@ -121,7 +131,20 @@ public sealed class TaskbarWidgetHost : IDisposable
         }
     }
 
-    // Docks the widget next to the notification area, vertically centred, above the taskbar's content layer.
+    private void RequestLayout()
+    {
+        if (_disposed) return;
+        // Deferred so the view finishes updating itself first. Normal priority, not Background: the visualizer redraws
+        // every frame and would starve Background work, which made the widget lag one change behind.
+        _dispatcher.BeginInvoke(DispatcherPriority.Normal, () =>
+        {
+            if (_disposed || _window is null) return;
+            try { SetAttached(Layout()); }
+            catch (Exception exception) { Debug.WriteLine($"Taskbar widget layout failed: {exception.Message}"); }
+        });
+    }
+
+    // Docks the widget on the taskbar, vertically centred, above the taskbar's content layer.
     // Returns false (and hides the widget) when there is no usable spot at the moment.
     private bool Layout()
     {
@@ -130,9 +153,12 @@ public sealed class TaskbarWidgetHost : IDisposable
         if (NativeMethods.GetWindowRect(_tray, out var taskbar) && notify != IntPtr.Zero
             && NativeMethods.GetWindowRect(notify, out var tray))
         {
+            // The widget has to keep at least its visualizer; the track title is what gives way in a tight spot.
+            var minimumWidth = 2 * _settings.WidgetPadding + _settings.VisualizerWidth;
+            var wishedWidth = Math.Max(minimumWidth, _window!.MeasureDesiredWidth());
             target = TaskbarDocking.Calculate(ToRect(taskbar), ToRect(tray), _scanner.Buttons,
-                new Size(TaskbarWidgetWindow.WidgetWidth, TaskbarWidgetWindow.WidgetHeight),
-                MinimumWidth, Scale, GapFromNeighbours, VerticalPadding);
+                new Size(wishedWidth, TaskbarWidgetWindow.WidgetHeight), minimumWidth, Scale, GapFromNeighbours,
+                VerticalPadding, _settings.Alignment, WindowsTaskbarInfo.IconsCentered, _settings.EdgeOffset);
         }
 
         if (target is not { } rect)

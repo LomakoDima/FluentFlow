@@ -31,6 +31,42 @@ public sealed class SystemThemeService : IDisposable
 
         void Set(string key, string color) => resources[key] = Brush(ToColor(color));
 
+        // macOS-style settings window.
+        if (light)
+        {
+            Set("MacWindowBrush", "#FFF2F2F4");
+            Set("MacSidebarBrush", "#FFE6E6EA");
+            Set("MacCardBrush", "#FFFFFFFF");
+            Set("MacBorderBrush", "#FFD6D6DB");
+            Set("MacDividerBrush", "#FFE6E6EA");
+            Set("MacTextBrush", "#FF1D1D1F");
+            Set("MacSecondaryTextBrush", "#FF86868B");
+            Set("MacControlBrush", "#FFE3E3E8");
+            Set("MacControlSelectedBrush", "#FFFFFFFF");
+            Set("MacHoverBrush", "#14000000");
+        }
+        else
+        {
+            Set("MacWindowBrush", "#FF1E1E20");
+            Set("MacSidebarBrush", "#FF2A2A2D");
+            Set("MacCardBrush", "#FF2C2C2E");
+            Set("MacBorderBrush", "#FF3E3E42");
+            Set("MacDividerBrush", "#FF3A3A3D");
+            Set("MacTextBrush", "#FFF5F5F7");
+            Set("MacSecondaryTextBrush", "#FF98989F");
+            Set("MacControlBrush", "#FF3B3B3F");
+            Set("MacControlSelectedBrush", "#FF6A6A70");
+            Set("MacHoverBrush", "#1AFFFFFF");
+        }
+        resources["MacAccentBrush"] = Brush(accent);
+        resources["WindowsAccentBrush"] = Brush(ToColor(_settings.GetColorValue(UIColorType.Accent)));
+
+        // The taskbar follows the system theme, not the app theme, so its text colour is chosen separately.
+        var taskbarLight = _forceLight ?? WindowsTaskbarInfo.SystemUsesLightTheme;
+        Set("TaskbarTextBrush", taskbarLight ? "#E4000000" : "#FFFFFFFF");
+        Set("TaskbarSecondaryTextBrush", taskbarLight ? "#9E000000" : "#C5FFFFFF");
+        Set("TaskbarBackgroundBrush", taskbarLight ? "#FFF3F3F3" : "#FF1C1C1C");
+
         if (light)
         {
             Set("FlyoutSurfaceBrush", "#F7F3F3F3");

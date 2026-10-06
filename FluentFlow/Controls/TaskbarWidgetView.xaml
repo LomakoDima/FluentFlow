@@ -1,0 +1,18 @@
+<UserControl x:Class="FluentFlow.Controls.TaskbarWidgetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:FluentFlow.Controls"
+             FontFamily="Segoe UI" UseLayoutRounding="True" Focusable="False">
+    <!-- Track title on the left (it shrinks first), visualizer on the right. Sizes come from AppSettings. -->
+    <Grid x:Name="Root">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="TitleText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   Foreground="{DynamicResource TaskbarTextBrush}" FontWeight="SemiBold" Margin="0,0,10,0" />
+        <controls:AudioVisualizer x:Name="Visualizer" Grid.Column="1" VerticalAlignment="Center"
+                                  IsHitTestVisible="False"
+                                  AutomationProperties.Name="System audio frequency visualizer" />
+    </Grid>
+</UserControl>

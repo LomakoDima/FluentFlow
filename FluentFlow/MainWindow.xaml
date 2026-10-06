@@ -40,7 +40,7 @@
                         </Image.Clip>
                     </Image>
                 </Border>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,52,0">
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,78,0">
                     <TextBlock Text="{Binding CurrentMedia.PlaybackLabel}" ToolTip="{Binding CurrentMedia.StatusMessage}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource AccentBrush}" Margin="0,0,0,3" />
@@ -53,6 +53,8 @@
                 <!-- No title bar: the window drags by its background, and these two sit in the corner. -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0,-6,-6,0">
+                    <Button Style="{StaticResource WindowButtonStyle}" Content="&#xE713;"
+                            Width="24" Height="24" Click="Settings_Click" ToolTip="Settings" AutomationProperties.Name="Settings" Margin="0,0,2,0" />
                     <Button x:Name="MinimizeButton" Style="{StaticResource WindowButtonStyle}" Content="&#xE921;"
                             Width="24" Height="24" Click="Minimize_Click" ToolTip="Minimize" AutomationProperties.Name="Minimize" />
                     <Button Style="{StaticResource WindowButtonStyle}" Content="&#xE8BB;"

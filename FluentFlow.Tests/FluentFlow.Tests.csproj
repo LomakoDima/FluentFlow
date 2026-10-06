@@ -21,9 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The placement and docking maths are pure geometry, so the tests compile those files instead of referencing the WPF exe. -->
+    <!-- Placement, docking and settings logic are free of windows, so the tests compile those files instead of referencing the WPF exe. -->
     <Compile Include="..\FluentFlow\Controls\FlyoutPlacement.cs" Link="FlyoutPlacement.cs" />
     <Compile Include="..\FluentFlow\Controls\TaskbarDocking.cs" Link="TaskbarDocking.cs" />
+    <Compile Include="..\FluentFlow\Services\AppSettings.cs" Link="AppSettings.cs" />
   </ItemGroup>
 
 </Project>

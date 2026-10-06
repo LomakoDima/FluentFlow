@@ -39,6 +39,8 @@ public partial class MainWindow : Window
         MinimizeButton.Visibility = Visibility.Visible;
     }
 
+    public event EventHandler? SettingsRequested;
+
     public void CloseForExit()
     {
         _exiting = true;
@@ -100,6 +102,8 @@ public partial class MainWindow : Window
             DragMove();
         }
     }
+
+    private void Settings_Click(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke(this, EventArgs.Empty);
 
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

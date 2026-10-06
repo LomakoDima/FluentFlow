@@ -18,6 +18,13 @@ public sealed class AudioVisualizer : FrameworkElement
         nameof(IsMirrored), typeof(bool), typeof(AudioVisualizer),
         new PropertyMetadata(false, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
 
+    public static readonly DependencyProperty BarThicknessProperty = DependencyProperty.Register(
+        nameof(BarThickness), typeof(double), typeof(AudioVisualizer),
+        new PropertyMetadata(0.6, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
+    public static readonly DependencyProperty BarRadiusProperty = DependencyProperty.Register(
+        nameof(BarRadius), typeof(double), typeof(AudioVisualizer),
+        new PropertyMetadata(1.5, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
+
     private readonly float[] _levels = new float[AudioVisualizerService.BarCount];
     private readonly float[] _previousLevels = new float[AudioVisualizerService.BarCount];
     private TimeSpan? _lastFrameTime;
@@ -63,6 +70,19 @@ public sealed class AudioVisualizer : FrameworkElement
     {
         get => (Brush)GetValue(BarBrushProperty);
         set => SetValue(BarBrushProperty, value);
+    }
+
+    // Bar width as a fraction of its slot (0..1).
+    public double BarThickness
+    {
+        get => (double)GetValue(BarThicknessProperty);
+        set => SetValue(BarThicknessProperty, value);
+    }
+
+    public double BarRadius
+    {
+        get => (double)GetValue(BarRadiusProperty);
+        set => SetValue(BarRadiusProperty, value);
     }
 
     // Bars grow up and down from the middle line instead of rising from the bottom.
@@ -160,14 +180,14 @@ public sealed class AudioVisualizer : FrameworkElement
         // Updating this child visual avoids running layout again for each animation frame.
         using var drawingContext = _drawing.RenderOpen();
         var slotWidth = ActualWidth / _levels.Length;
-        var barWidth = slotWidth * 0.6;
+        var barWidth = slotWidth * Math.Clamp(BarThickness, 0.1, 1);
         var minimumHeight = Math.Min(2, ActualHeight);
         for (var i = 0; i < _levels.Length; i++)
         {
             var height = minimumHeight + _levels[i] * (ActualHeight - minimumHeight);
             var top = IsMirrored ? (ActualHeight - height) / 2 : ActualHeight - height;
             drawingContext.DrawRoundedRectangle(BarBrush, null,
-                new Rect(i * slotWidth, top, barWidth, height), Math.Min(1.5, barWidth / 2), Math.Min(1.5, barWidth / 2));
+                new Rect(i * slotWidth + (slotWidth - barWidth) / 2, top, barWidth, height), Math.Min(BarRadius, barWidth / 2), Math.Min(BarRadius, barWidth / 2));
         }
     }
 }
