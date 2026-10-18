@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,14 +21,21 @@ public partial class SettingsWindow : Window
     private static readonly string[] SwatchColors =
         ["#D7AC99", "#0A84FF", "#BF5AF2", "#FF375F", "#FF9F0A", "#30D158", "#64D2FF", "#FFFFFF"];
 
-    // The preview taskbar is a schematic 860 DIP wide (a real one is much wider), scaled down to fit the window.
-    private const double PreviewWidth = 860, PreviewHeight = 48, PreviewIcon = 44, PreviewGap = 4, PreviewPadding = 2;
-    private const double TaskbarIconCount = 7;
+    // The preview taskbar is a schematic 860 DIP long (a real one is much longer), scaled down to fit the window. On a
+    // taskbar at the side of the screen it is a shorter strip standing upright.
+    private const double PreviewLength = 860, PreviewThickness = 48, PreviewIcon = 44, PreviewGap = 4, PreviewPadding = 2;
+    private const double HorizontalTrayLength = 110, VerticalPreviewLength = 330, VerticalTrayLength = 56;
+    private const double TaskbarIconCount = 7, VerticalIconCount = 3;
+    private const double VerticalPreviewMaxHeight = 210;
 
     private readonly AppSettings _settings;
     private readonly TaskbarWidgetView _previewView;
-    private readonly Canvas _iconLayer = new() { Width = PreviewWidth, Height = PreviewHeight, IsHitTestVisible = false };
+    private readonly Canvas _iconLayer = new() { Width = PreviewLength, Height = PreviewThickness, IsHitTestVisible = false };
+    private readonly Border _previewBackground = new() { Width = PreviewLength, Height = PreviewThickness, CornerRadius = new CornerRadius(8), IsHitTestVisible = false };
     private readonly Dictionary<string, Button> _swatches = [];
+    private bool? _vertical; // the taskbar edge the texts and the preview currently describe
+    private Panel? _page;    // the page on show, so a change of page can be told from the first one
+    private bool _closing;
 
     public SettingsWindow(AppSettings settings, MediaSessionService media, AudioVisualizerService visualizer)
     {
@@ -35,11 +43,6 @@ public partial class SettingsWindow : Window
         _settings = settings;
         DataContext = settings;
 
-        AlignmentList.ItemsSource = new[]
-        {
-            new Option(WidgetAlignment.Auto, "Auto"), new Option(WidgetAlignment.Left, "Left"),
-            new Option(WidgetAlignment.Center, "Center"), new Option(WidgetAlignment.Right, "Right")
-        };
         ColorModeList.ItemsSource = new[]
         {
             new Option(VisualizerColorMode.Accent, "FluentFlow"), new Option(VisualizerColorMode.Windows, "Windows"),
@@ -58,25 +61,61 @@ public partial class SettingsWindow : Window
         // The preview: a mock taskbar with the real widget view on it.
         _previewView = new TaskbarWidgetView(settings, media, visualizer, preview: true) { Height = TaskbarWidgetWindow.WidgetHeight };
         _previewView.AppearanceChanged += (_, _) => UpdatePreview();
-        var background = new Border
-        {
-            Width = PreviewWidth, Height = PreviewHeight, CornerRadius = new CornerRadius(8), IsHitTestVisible = false
-        };
-        background.SetResourceReference(Border.BackgroundProperty, "TaskbarBackgroundBrush");
-        PreviewCanvas.Children.Add(background);
+        _previewBackground.SetResourceReference(Border.BackgroundProperty, "TaskbarBackgroundBrush");
+        PreviewCanvas.Children.Add(_previewBackground);
         PreviewCanvas.Children.Add(_iconLayer);
         PreviewCanvas.Children.Add(_previewView);
 
         _settings.PropertyChanged += Settings_PropertyChanged;
         Closed += (_, _) => _settings.PropertyChanged -= Settings_PropertyChanged;
-        Activated += (_, _) => StartupSwitch.IsChecked = StartupRegistration.IsEnabled;
+        Activated += (_, _) =>
+        {
+            StartupSwitch.IsChecked = StartupRegistration.IsEnabled;
+            if (SyncTaskbarEdge()) UpdatePreview();
+        };
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
+
+        // The window opens with a fade and a small grow, and closes the other way round (see OnClosing).
+        if (Motion.Enabled) Frame.Opacity = 0;
+        Loaded += (_, _) => Motion.Enter(Frame, scale: 0.96, milliseconds: Motion.Slow);
 
         VersionText.Text = Version();
         StartupSwitch.IsChecked = StartupRegistration.IsEnabled;
         Sidebar.SelectedIndex = 0;
         SyncColorControls();
+        SyncTaskbarEdge();
         UpdatePreview();
+    }
+
+    // Everything that depends on which edge the taskbar is docked to: on a taskbar at the side of the screen the
+    // positions are top, centre and bottom, the widget has no title and the preview stands upright. Returns true when
+    // that changed.
+    private bool SyncTaskbarEdge() => ApplyTaskbarEdge(WindowsTaskbarInfo.IsVertical);
+
+    private bool ApplyTaskbarEdge(bool vertical)
+    {
+        if (_vertical == vertical) return false;
+        _vertical = vertical;
+
+        var chosen = _settings.Alignment;
+        AlignmentList.ItemsSource = new[]
+        {
+            new Option(WidgetAlignment.Auto, "Auto"), new Option(WidgetAlignment.Left, vertical ? "Top" : "Left"),
+            new Option(WidgetAlignment.Center, "Center"), new Option(WidgetAlignment.Right, vertical ? "Bottom" : "Right")
+        };
+        AlignmentList.SelectedValue = chosen;
+
+        AlignmentRow.Description = vertical
+            ? "Auto follows your Windows taskbar icon alignment: with centred icons the widget goes to the top edge, otherwise it sits by the notification area."
+            : "Auto follows your Windows taskbar icon alignment: with centred icons the widget goes to the left edge, with left-aligned icons it sits by the notification area.";
+        WidthRow.Description = vertical ? "Length of the visualizer along the taskbar." : string.Empty;
+        HeightRow.Description = vertical ? "Depth of the visualizer across the taskbar." : string.Empty;
+        ShowTitleRow.Description = vertical
+            ? "Display what is playing to the left of the visualizer. A taskbar at the side of the screen has no room for it."
+            : "Display what is playing to the left of the visualizer.";
+        _previewView.SetOrientation(vertical ? Orientation.Vertical : Orientation.Horizontal, growFromEnd: false);
+        PreviewViewbox.MaxHeight = vertical ? VerticalPreviewMaxHeight : double.PositiveInfinity;
+        return true;
     }
 
     private static Brush Tile(string hex) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
@@ -92,11 +131,21 @@ public partial class SettingsWindow : Window
     private void Sidebar_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (Sidebar.SelectedItem is not SidebarItem selected) return;
+        var previewWasShown = PreviewCard.Visibility == Visibility.Visible;
         foreach (var item in Sidebar.Items.OfType<SidebarItem>())
             item.Page.Visibility = ReferenceEquals(item, selected) ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = selected.Title;
         // The preview is about the widget; the General page has nothing to show there.
-        PreviewCard.Visibility = ReferenceEquals(selected.Page, GeneralPage) ? Visibility.Collapsed : Visibility.Visible;
+        var showPreview = !ReferenceEquals(selected.Page, GeneralPage);
+        PreviewCard.Visibility = showPreview ? Visibility.Visible : Visibility.Collapsed;
+
+        // A new page eases in from below and the title follows from the side; the first page is just there.
+        var changed = _page is not null && !ReferenceEquals(_page, selected.Page);
+        _page = selected.Page;
+        if (!changed || !IsLoaded) return;
+        Motion.Enter(selected.Page, dy: 10);
+        Motion.Enter(PageTitle, dx: 8);
+        if (showPreview && !previewWasShown) Motion.Enter(PreviewCard, dy: -8);
     }
 
     // Window chrome
@@ -107,6 +156,21 @@ public partial class SettingsWindow : Window
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    // Closing plays the opening backwards (a fade and a small shrink), then really closes. It is skipped when the app
+    // is exiting, when the window is minimised and when animations are off.
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        var exiting = Application.Current is App { IsExiting: true };
+        if (!_closing && !exiting && IsVisible && WindowState != WindowState.Minimized && Motion.Enabled)
+        {
+            _closing = true;
+            e.Cancel = true;
+            Motion.Leave(Frame, Close, scale: 0.97, milliseconds: Motion.Quick);
+            return;
+        }
+        base.OnClosing(e);
+    }
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     // General
@@ -145,8 +209,7 @@ public partial class SettingsWindow : Window
     private void SyncColorControls()
     {
         var custom = _settings.ColorMode == VisualizerColorMode.Custom;
-        CustomColorRow.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
-        CustomColorDivider.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
+        Motion.SetRevealed(CustomColorPanel, custom, animate: IsLoaded);
         foreach (var (hex, button) in _swatches)
             button.Tag = string.Equals(hex, _settings.CustomColor, StringComparison.OrdinalIgnoreCase) ? "selected" : null;
         if (!HexBox.IsKeyboardFocused) HexBox.Text = _settings.CustomColor;
@@ -184,23 +247,34 @@ public partial class SettingsWindow : Window
     // Places the real widget view on a mock taskbar using the same maths as the real widget host.
     private void UpdatePreview()
     {
+        var vertical = _vertical == true;
         var centered = WindowsTaskbarInfo.IconsCentered;
+        var length = vertical ? VerticalPreviewLength : PreviewLength;
+        var taskbar = vertical ? new Rect(0, 0, PreviewThickness, length) : new Rect(0, 0, length, PreviewThickness);
+        ResizePreview(taskbar.Size);
+
         var buttons = new List<Rect>();
         _iconLayer.Children.Clear();
-        var firstX = centered ? (PreviewWidth - TaskbarIconCount * PreviewIcon) / 2 : 0;
-        for (var i = 0; i < TaskbarIconCount; i++)
+        var count = vertical ? VerticalIconCount : TaskbarIconCount;
+        // A taskbar at the side of the screen starts its icons at the top; a horizontal one may centre them.
+        var firstOffset = centered && !vertical ? (length - count * PreviewIcon) / 2 : 0;
+        for (var i = 0; i < count; i++)
         {
-            var slot = new Rect(firstX + i * PreviewIcon, 0, PreviewIcon, PreviewHeight);
+            var slot = vertical
+                ? new Rect(0, i * PreviewIcon, PreviewThickness, PreviewIcon)
+                : new Rect(firstOffset + i * PreviewIcon, 0, PreviewIcon, PreviewThickness);
             buttons.Add(slot);
             AddIcon(slot, start: i == 0);
         }
-        var tray = new Rect(PreviewWidth - 110, 0, 110, PreviewHeight);
-        AddTray(tray);
+        var tray = vertical
+            ? new Rect(0, length - VerticalTrayLength, PreviewThickness, VerticalTrayLength)
+            : new Rect(length - HorizontalTrayLength, 0, HorizontalTrayLength, PreviewThickness);
+        AddTray(tray, vertical);
 
-        var minimumWidth = 2 * _settings.WidgetPadding + _settings.VisualizerWidth;
-        var wished = Math.Max(minimumWidth, _previewView.MeasureDesiredWidth());
-        var spot = TaskbarDocking.Calculate(new Rect(0, 0, PreviewWidth, PreviewHeight), tray, buttons,
-            new Size(wished, TaskbarWidgetWindow.WidgetHeight), minimumWidth, 1, PreviewGap, PreviewPadding,
+        var minimumLength = 2 * _settings.WidgetPadding + _settings.VisualizerWidth;
+        var wished = Math.Max(minimumLength, _previewView.MeasureDesiredLength());
+        var spot = TaskbarDocking.Calculate(taskbar, tray, buttons,
+            new Size(wished, TaskbarWidgetWindow.WidgetHeight), minimumLength, 1, PreviewGap, PreviewPadding,
             _settings.Alignment, centered, _settings.EdgeOffset);
 
         if (spot is { } rect)
@@ -210,7 +284,9 @@ public partial class SettingsWindow : Window
             Canvas.SetTop(_previewView, rect.Y);
             _previewView.Width = rect.Width;
             _previewView.Height = rect.Height;
-            PreviewNote.Text = $"Windows places your taskbar icons {(centered ? "in the centre" : "on the left")}.";
+            PreviewNote.Text = vertical
+                ? "Your taskbar is at the side of the screen, so the widget shows just the visualizer, turned to run along it."
+                : $"Windows places your taskbar icons {(centered ? "in the centre" : "on the left")}.";
         }
         else
         {
@@ -219,29 +295,36 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void ResizePreview(Size size)
+    {
+        PreviewCanvas.Width = _iconLayer.Width = _previewBackground.Width = size.Width;
+        PreviewCanvas.Height = _iconLayer.Height = _previewBackground.Height = size.Height;
+    }
+
     private void AddIcon(Rect slot, bool start)
     {
         var icon = new Border { Width = 22, Height = 22, CornerRadius = new CornerRadius(start ? 4 : 6), Opacity = start ? 0.9 : 0.35 };
         icon.SetResourceReference(Border.BackgroundProperty, start ? "MacAccentBrush" : "TaskbarTextBrush");
         Canvas.SetLeft(icon, slot.X + (slot.Width - 22) / 2);
-        Canvas.SetTop(icon, (PreviewHeight - 22) / 2);
+        Canvas.SetTop(icon, slot.Y + (slot.Height - 22) / 2);
         _iconLayer.Children.Add(icon);
     }
 
-    private void AddTray(Rect tray)
+    // Three dots and a clock: along the strip on a horizontal taskbar, stacked on a vertical one.
+    private void AddTray(Rect tray, bool vertical)
     {
         for (var i = 0; i < 3; i++)
         {
             var dot = new Ellipse { Width = 10, Height = 10, Opacity = 0.35 };
             dot.SetResourceReference(Shape.FillProperty, "TaskbarTextBrush");
-            Canvas.SetLeft(dot, tray.X + 12 + i * 18);
-            Canvas.SetTop(dot, (PreviewHeight - 10) / 2);
+            Canvas.SetLeft(dot, vertical ? tray.X + (tray.Width - 10) / 2 : tray.X + 12 + i * 18);
+            Canvas.SetTop(dot, vertical ? tray.Y + 8 + i * 14 : tray.Y + (tray.Height - 10) / 2);
             _iconLayer.Children.Add(dot);
         }
         var clock = new Border { Width = 28, Height = 14, CornerRadius = new CornerRadius(3), Opacity = 0.35 };
         clock.SetResourceReference(Border.BackgroundProperty, "TaskbarTextBrush");
-        Canvas.SetLeft(clock, tray.Right - 40);
-        Canvas.SetTop(clock, (PreviewHeight - 14) / 2);
+        Canvas.SetLeft(clock, vertical ? tray.X + (tray.Width - 28) / 2 : tray.Right - 40);
+        Canvas.SetTop(clock, vertical ? tray.Bottom - 22 : tray.Y + (tray.Height - 14) / 2);
         _iconLayer.Children.Add(clock);
     }
 }

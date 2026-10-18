@@ -32,14 +32,22 @@ The player window and the volume flyout (sample data):
 ## Features
 
 - **Taskbar widget.** The current track title and a mirrored spectrum visualizer on the taskbar. Click it to open the
-  player; right-click for *Open*, *Settings*, *Start with Windows* and *Exit*.
+  player; right-click for *Open*, *Settings*, *Start with Windows* and *Exit*. It also works on a taskbar docked at
+  the left or right edge of the screen: the visualizer turns to run along it (without the title, which has no room
+  there) and the player opens beside it.
 - **Settings.** Everything below changes the widget live and is remembered between runs.
-  - *Position:* Auto, Left, Center or Right, plus a distance from the edge. **Auto follows your Windows taskbar icon
+  - *Position:* Auto, Left, Center or Right (Top, Center or Bottom on a side taskbar), plus a distance from the edge. **Auto follows your Windows taskbar icon
     alignment**: with centred icons the free space is at the edge, so the widget goes there; with left-aligned
     icons it sits next to the notification area. The widget always takes a free gap and never covers an icon.
   - *Appearance:* colour (FluentFlow, Windows accent or any custom colour), opacity, width, height, bar thickness,
     corner radius, mirrored or not, side padding.
   - *Track title:* show or hide it, add the artist, maximum width and text size.
+- **Motion.** The player slides out of the widget (towards the screen, away from whichever edge the taskbar is on)
+  and fades away again; the settings window grows in and shrinks out, its pages ease in, and options that appear
+  (like the custom colour) open up instead of jumping. In the player a new track brings its title and cover in, play
+  and pause swap with a bounce, and the progress bar glides. Buttons, the context menu, segmented controls and the
+  widget's hover plate fade rather than switch. The windows, pages and track changes follow the Windows
+  *Animation effects* setting and stay still when it is off; the small hover and press effects on buttons always play.
 - **Compact player window.** Cover art, title, artist, previous / play-pause / next, progress. It opens next to the
   widget and hides again with the widget, the close button or a second click.
 - **Volume flyout.** Click the speaker icon: real system volume and mute, mouse wheel (2% per notch), keyboard
@@ -50,12 +58,14 @@ The player window and the volume flyout (sample data):
 ## Download
 
 Grab `FluentFlow-win-x64.zip` from the [Releases](../../releases) page, unzip it and run `FluentFlow.exe`.
-It needs the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+Nothing else has to be installed: the .NET runtime is built into the exe. The first start takes a moment longer,
+because the exe unpacks its native libraries to `%TEMP%\.net`.
 
 ## Requirements
 
-- Windows 10 version 2004 or later (the taskbar widget is designed for the Windows 11 taskbar)
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) to build, the .NET 10 Desktop Runtime to run
+- Windows 10 version 2004 or later (the taskbar widget is designed for the Windows 11 taskbar), 64-bit
+- To run a release build: nothing, it is self-contained
+- To build from source: the [.NET 10 SDK](https://dotnet.microsoft.com/download)
 
 ## Build and run
 
@@ -66,11 +76,13 @@ dotnet run --project FluentFlow
 
 Or open `FluentFlow.slnx` in Visual Studio and press F5.
 
-Publish a framework-dependent build:
+Publish the self-contained single-file build (about 70 MB, the runtime is inside, no .NET needed to run it):
 
 ```powershell
-dotnet publish FluentFlow/FluentFlow.csproj -c Release -r win-x64 --self-contained false -o publish
+dotnet publish FluentFlow/FluentFlow.csproj -c Release -p:PublishProfile=win-x64 -o publish
 ```
+
+The profile is `FluentFlow/Properties/PublishProfiles/win-x64.pubxml`. The result is a single `publish\FluentFlow.exe`.
 
 ## Command line
 
@@ -97,12 +109,15 @@ left-aligned icons, crowded taskbars and right-to-left layouts alike.
   taskbar size and auto-hide changes. After an Explorer restart it is rebuilt.
 - UI Automation is only used on a background thread. If the gap is narrower than the widget, the track title shrinks
   first; when there is no room at all the app switches to a normal window.
-- Vertical taskbars and taskbars thinner than about 24 px are not supported (normal window instead).
+- On a taskbar at the left or right edge the widget is the visualizer alone, turned 90 degrees: its *Width* setting is
+  then its length along the taskbar and its *Height* its depth across it. Left and Right become the top and the
+  bottom of the taskbar. Taskbars thinner than about 24 px are not supported (normal window instead).
 - The widget is shown on the primary taskbar only.
 - A child window shares input with the taskbar, so FluentFlow keeps its UI thread free of blocking work.
 
 The placement maths is pure geometry and covered by unit tests, including every alignment, other taskbar edges,
-DPI scales, secondary monitors, small buttons, crowded taskbars and right-to-left layouts.
+DPI scales, secondary monitors, small buttons, crowded taskbars, right-to-left layouts and taskbars at the left and
+right edges (including where the player opens next to them).
 
 ## Settings file
 

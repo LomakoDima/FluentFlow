@@ -34,6 +34,10 @@ namespace FluentFlow
         private DispatcherTimer? _fallbackTimer;
         private bool _autostart;
 
+        // True once the app is on its way out (Exit, the player closed, Windows signing out). Windows that animate
+        // their closing skip it then, so they can never hold the exit up.
+        internal bool IsExiting { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // "--profile name": separate settings and a separate "already running" lock, for side-by-side copies and tests.
@@ -67,7 +71,8 @@ namespace FluentFlow
             _window.SettingsRequested += (_, _) => ShowSettings();
             MainWindow = _window;
             // Plain mode closes for real; widget mode only ever closes through ExitApp. Either way the app ends.
-            _window.Closed += (_, _) => Shutdown();
+            _window.Closed += (_, _) => { IsExiting = true; Shutdown(); };
+            SessionEnding += (_, _) => IsExiting = true;
             StartServices();
 
             // "--no-widget": run as an ordinary window (for taskbars the widget doesn't suit, and for testing that path).
@@ -195,6 +200,7 @@ namespace FluentFlow
 
         private void ExitApp()
         {
+            IsExiting = true;
             _window?.CloseForExit();
             Shutdown();
         }

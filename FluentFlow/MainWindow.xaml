@@ -23,7 +23,7 @@
                     <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border CornerRadius="10" Background="#CE725B">
+                <Border x:Name="ArtworkFrame" CornerRadius="10" Background="#CE725B">
                     <Image Stretch="UniformToFill" AutomationProperties.Name="Album artwork">
                         <Image.Style>
                             <Style TargetType="Image">
@@ -40,7 +40,7 @@
                         </Image.Clip>
                     </Image>
                 </Border>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,78,0">
+                <StackPanel x:Name="TrackText" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,78,0">
                     <TextBlock Text="{Binding CurrentMedia.PlaybackLabel}" ToolTip="{Binding CurrentMedia.StatusMessage}"
                                FontSize="9" FontWeight="SemiBold"
                                Foreground="{StaticResource AccentBrush}" Margin="0,0,0,3" />
@@ -72,7 +72,7 @@
                             IsEnabled="{Binding CurrentMedia.CanPlayPause}"
                             ToolTip="{Binding CurrentMedia.PlayPauseDescription}" ToolTipService.ShowOnDisabled="True"
                             AutomationProperties.Name="{Binding CurrentMedia.PlayPauseDescription}">
-                        <TextBlock FontFamily="Segoe Fluent Icons" FontSize="17">
+                        <TextBlock x:Name="PlayGlyph" FontFamily="Segoe Fluent Icons" FontSize="17">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Text" Value="&#xE768;" />
@@ -109,8 +109,8 @@
                     <RowDefinition Height="5" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <ProgressBar Style="{StaticResource PlaybackProgressStyle}" Minimum="0"
-                             Maximum="{Binding CurrentMedia.ProgressMaximum}" Value="{Binding CurrentMedia.ProgressValue, Mode=OneWay}"
+                <!-- Maximum and Value are set from code (MainWindow.ShowProgress), which glides between the updates. -->
+                <ProgressBar x:Name="Progress" Style="{StaticResource PlaybackProgressStyle}" Minimum="0"
                              AutomationProperties.Name="Track progress" />
                 <TextBlock Grid.Row="2" Text="{Binding CurrentMedia.CurrentTime}" Style="{StaticResource TimeLabelStyle}" />
                 <TextBlock Grid.Row="2" Text="{Binding CurrentMedia.TotalTime}" Style="{StaticResource TimeLabelStyle}"

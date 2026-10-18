@@ -67,12 +67,6 @@ public class TaskbarDockingTests
     }
 
     [Fact]
-    public void Vertical_taskbars_are_unsupported_so_the_app_falls_back_to_a_window()
-    {
-        Assert.Null(Dock(new Rect(0, 0, 62, 1080), new Rect(0, 900, 62, 180)));
-    }
-
-    [Fact]
     public void A_missing_or_empty_notification_area_is_unsupported()
     {
         Assert.Null(Dock(new Rect(0, 0, 1920, 48), Rect.Empty));

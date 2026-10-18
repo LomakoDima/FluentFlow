@@ -207,21 +207,51 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="Plate" CornerRadius="6" Padding="14,4" Background="Transparent" Margin="0">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          TextElement.FontSize="12.5" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="HoverPlate" CornerRadius="6" Background="{DynamicResource MacHoverBrush}" Opacity="0" />
+                        <!-- The chosen segment fades in on its plate, so a change reads as a hand-over, not a jump. -->
+                        <Border x:Name="SelectedPlate" CornerRadius="6" Background="{DynamicResource MacControlSelectedBrush}" Opacity="0">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.25" Color="Black" />
+                            </Border.Effect>
+                        </Border>
+                        <Border Padding="8,4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.FontSize="12.5" />
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource MacHoverBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource MacControlSelectedBrush}" />
-                            <Setter TargetName="Plate" Property="Effect">
-                                <Setter.Value>
-                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.25" Color="Black" />
-                                </Setter.Value>
-                            </Setter>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -264,12 +294,25 @@
                 <ControlTemplate TargetType="Button">
                     <Grid>
                         <Border CornerRadius="6" Background="{DynamicResource MacControlBrush}" />
-                        <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource MacHoverBrush}" Visibility="Collapsed" />
+                        <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource MacHoverBrush}" Opacity="0" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Hover" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Opacity" Value="0.75" />
@@ -309,15 +352,45 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="Plate" CornerRadius="8" Padding="8,6" Margin="0,1" Background="Transparent">
-                        <ContentPresenter x:Name="Content" TextElement.FontSize="13.5" />
-                    </Border>
+                    <Grid Margin="0,1">
+                        <Border x:Name="HoverPlate" CornerRadius="8" Background="{DynamicResource MacHoverBrush}" Opacity="0" />
+                        <Border x:Name="SelectedPlate" CornerRadius="8" Background="{DynamicResource MacAccentBrush}" Opacity="0" />
+                        <Border Padding="8,6">
+                            <ContentPresenter x:Name="Content" TextElement.FontSize="13.5" />
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource MacHoverBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource MacAccentBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                             <Setter TargetName="Content" Property="TextElement.Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -346,12 +419,25 @@
                     <Grid Background="Transparent">
                         <Ellipse Fill="{TemplateBinding Background}" Stroke="#33000000" StrokeThickness="0.5" />
                         <TextBlock x:Name="Symbol" Text="{TemplateBinding Content}" FontFamily="Segoe Fluent Icons"
-                                   FontSize="7" FontWeight="Bold" Foreground="#B3000000" Visibility="Collapsed"
+                                   FontSize="7" FontWeight="Bold" Foreground="#B3000000" Opacity="0"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Symbol" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Symbol" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Symbol" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Opacity" Value="0.7" />
@@ -375,16 +461,47 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid Background="Transparent">
-                        <Ellipse x:Name="Ring" Stroke="{DynamicResource MacTextBrush}" StrokeThickness="2" Visibility="Collapsed" />
+                    <Grid x:Name="Body" Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform />
+                        </Grid.RenderTransform>
+                        <Ellipse x:Name="Ring" Stroke="{DynamicResource MacTextBrush}" StrokeThickness="2" Opacity="0" />
                         <Ellipse Margin="3" Fill="{TemplateBinding Background}" Stroke="#33000000" StrokeThickness="0.5" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Tag" Value="selected">
-                            <Setter TargetName="Ring" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="0.85" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Body" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.12" Duration="0:0:0.12"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Body" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.12" Duration="0:0:0.12"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Body" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Body" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

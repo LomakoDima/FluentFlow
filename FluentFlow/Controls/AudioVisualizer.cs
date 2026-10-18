@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using FluentFlow.Services;
 
@@ -24,6 +25,14 @@ public sealed class AudioVisualizer : FrameworkElement
     public static readonly DependencyProperty BarRadiusProperty = DependencyProperty.Register(
         nameof(BarRadius), typeof(double), typeof(AudioVisualizer),
         new PropertyMetadata(1.5, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
+
+    // Vertical lays the 24 bands out top to bottom and grows each bar sideways, for a taskbar at a screen edge.
+    public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
+        nameof(Orientation), typeof(Orientation), typeof(AudioVisualizer),
+        new PropertyMetadata(Orientation.Horizontal, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
+    public static readonly DependencyProperty GrowFromEndProperty = DependencyProperty.Register(
+        nameof(GrowFromEnd), typeof(bool), typeof(AudioVisualizer),
+        new PropertyMetadata(false, (sender, _) => ((AudioVisualizer)sender).DrawBars()));
 
     private readonly float[] _levels = new float[AudioVisualizerService.BarCount];
     private readonly float[] _previousLevels = new float[AudioVisualizerService.BarCount];
@@ -90,6 +99,20 @@ public sealed class AudioVisualizer : FrameworkElement
     {
         get => (bool)GetValue(IsMirroredProperty);
         set => SetValue(IsMirroredProperty, value);
+    }
+
+    public Orientation Orientation
+    {
+        get => (Orientation)GetValue(OrientationProperty);
+        set => SetValue(OrientationProperty, value);
+    }
+
+    // Vertical and not mirrored only: bars start at the right edge instead of the left one, so they always grow away
+    // from the screen edge the taskbar is docked to.
+    public bool GrowFromEnd
+    {
+        get => (bool)GetValue(GrowFromEndProperty);
+        set => SetValue(GrowFromEndProperty, value);
     }
 
     protected override int VisualChildrenCount => 1;
@@ -179,8 +202,25 @@ public sealed class AudioVisualizer : FrameworkElement
     {
         // Updating this child visual avoids running layout again for each animation frame.
         using var drawingContext = _drawing.RenderOpen();
+        var thickness = Math.Clamp(BarThickness, 0.1, 1);
+        if (Orientation == Orientation.Vertical)
+        {
+            var slotHeight = ActualHeight / _levels.Length;
+            var barHeight = slotHeight * thickness;
+            var minimumWidth = Math.Min(2, ActualWidth);
+            var radius = Math.Min(BarRadius, barHeight / 2);
+            for (var i = 0; i < _levels.Length; i++)
+            {
+                var width = minimumWidth + _levels[i] * (ActualWidth - minimumWidth);
+                var left = IsMirrored ? (ActualWidth - width) / 2 : GrowFromEnd ? ActualWidth - width : 0;
+                drawingContext.DrawRoundedRectangle(BarBrush, null,
+                    new Rect(left, i * slotHeight + (slotHeight - barHeight) / 2, width, barHeight), radius, radius);
+            }
+            return;
+        }
+
         var slotWidth = ActualWidth / _levels.Length;
-        var barWidth = slotWidth * Math.Clamp(BarThickness, 0.1, 1);
+        var barWidth = slotWidth * thickness;
         var minimumHeight = Math.Min(2, ActualHeight);
         for (var i = 0; i < _levels.Length; i++)
         {

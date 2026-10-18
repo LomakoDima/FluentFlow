@@ -7,19 +7,9 @@
         UseLayoutRounding="True">
     <!-- Hosted by TaskbarWidgetHost as a child of the Windows taskbar, so it must stay tiny and fully ours.
          The content (track title and visualizer) is a TaskbarWidgetView, added in code. -->
-    <Border x:Name="Surface" CornerRadius="6" Cursor="Hand" ToolTip="FluentFlow: click to open"
+    <!-- Nearly transparent rather than null, so the whole widget is clickable. The hover plate is added in code and fades. -->
+    <Border x:Name="Surface" CornerRadius="6" Cursor="Hand" ToolTip="FluentFlow: click to open" Background="#01000000"
             MouseLeftButtonUp="Surface_MouseLeftButtonUp" AutomationProperties.Name="Open FluentFlow">
-        <Border.Style>
-            <Style TargetType="Border">
-                <!-- Nearly transparent rather than null, so the whole widget is clickable. -->
-                <Setter Property="Background" Value="#01000000" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#26808080" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-        </Border.Style>
         <Border.ContextMenu>
             <ContextMenu Style="{StaticResource FlyoutContextMenuStyle}" Opened="ContextMenu_Opened">
                 <MenuItem Header="Open FluentFlow" Style="{StaticResource FlyoutMenuItemStyle}" Click="Open_Click">

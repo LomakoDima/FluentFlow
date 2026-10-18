@@ -95,8 +95,8 @@ public sealed class FlyoutPopup : Popup
         }
 
         _closing = true;
-        var toward = _side == FlyoutSide.Above ? SlideDistance / 2 : -SlideDistance / 2;
-        _slide.BeginAnimation(TranslateTransform.YProperty,
+        var toward = SlideDirection * SlideDistance / 2;
+        _slide.BeginAnimation(SlideProperty,
             new DoubleAnimation(toward, TimeSpan.FromMilliseconds(100)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
         var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(100));
         fade.Completed += (_, _) =>
@@ -151,16 +151,25 @@ public sealed class FlyoutPopup : Popup
             return;
         }
 
-        var from = _side == FlyoutSide.Above ? SlideDistance : -SlideDistance;
-        _slide.BeginAnimation(TranslateTransform.YProperty,
+        var from = SlideDirection * SlideDistance;
+        _slide.BeginAnimation(SlideProperty,
             new DoubleAnimation(from, 0, TimeSpan.FromMilliseconds(180)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         _frame.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140)));
     }
 
+    // The flyout slides in from the taskbar's side: up from below a bottom taskbar, sideways from a taskbar at an edge.
+    private DependencyProperty SlideProperty
+        => _side is FlyoutSide.Left or FlyoutSide.Right ? TranslateTransform.XProperty : TranslateTransform.YProperty;
+
+    // Which way the start of the slide lies from the final spot: below it, above it, left of it or right of it.
+    private double SlideDirection => _side is FlyoutSide.Above or FlyoutSide.Left ? 1 : -1;
+
     private void ResetAnimations()
     {
+        _slide.BeginAnimation(TranslateTransform.XProperty, null);
         _slide.BeginAnimation(TranslateTransform.YProperty, null);
         _frame.BeginAnimation(UIElement.OpacityProperty, null);
+        _slide.X = 0;
         _slide.Y = 0;
     }
 

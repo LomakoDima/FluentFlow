@@ -8,7 +8,7 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         FontFamily="Segoe UI" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
         Foreground="{DynamicResource MacTextBrush}">
-    <Border CornerRadius="12" Background="{DynamicResource MacWindowBrush}"
+    <Border x:Name="Frame" CornerRadius="12" Background="{DynamicResource MacWindowBrush}"
             BorderBrush="{DynamicResource MacBorderBrush}" BorderThickness="1">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -63,7 +63,7 @@
                 <Border x:Name="PreviewCard" Grid.Row="1" Style="{StaticResource MacCardStyle}" Margin="24,0,24,16"
                         Padding="10" Background="{DynamicResource MacCardBrush}">
                     <StackPanel>
-                        <Viewbox StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Center">
+                        <Viewbox x:Name="PreviewViewbox" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Center">
                             <Canvas x:Name="PreviewCanvas" Width="860" Height="48" />
                         </Viewbox>
                         <TextBlock x:Name="PreviewNote" FontSize="11.5" Margin="2,8,0,0" TextWrapping="Wrap"
@@ -109,7 +109,7 @@
                         <StackPanel x:Name="PositionPage" Visibility="Collapsed">
                             <Border Style="{StaticResource MacCardStyle}">
                                 <StackPanel>
-                                    <controls:MacRow Title="Alignment"
+                                    <controls:MacRow x:Name="AlignmentRow" Title="Alignment"
                                                      Description="Auto follows your Windows taskbar icon alignment: with centred icons the widget goes to the left edge, with left-aligned icons it sits by the notification area.">
                                         <ListBox x:Name="AlignmentList" Style="{StaticResource MacSegmentedStyle}" Width="270"
                                                  DisplayMemberPath="Label" SelectedValuePath="Value"
@@ -142,6 +142,7 @@
                                                  SelectedValue="{Binding ColorMode, Mode=TwoWay}"
                                                  AutomationProperties.Name="Visualizer colour source" />
                                     </controls:MacRow>
+                                    <StackPanel x:Name="CustomColorPanel" Visibility="Collapsed">
                                     <Border x:Name="CustomColorDivider" Style="{StaticResource MacDividerStyle}" />
                                     <controls:MacRow x:Name="CustomColorRow" Title="Custom colour">
                                         <StackPanel Orientation="Horizontal">
@@ -151,6 +152,7 @@
                                                      AutomationProperties.Name="Custom colour (hex)" />
                                         </StackPanel>
                                     </controls:MacRow>
+                                    </StackPanel>
                                     <Border Style="{StaticResource MacDividerStyle}" />
                                     <controls:MacRow Title="Opacity">
                                         <StackPanel Orientation="Horizontal">
@@ -168,7 +170,7 @@
                             <TextBlock Text="BARS" Style="{StaticResource MacSectionHeaderStyle}" />
                             <Border Style="{StaticResource MacCardStyle}">
                                 <StackPanel>
-                                    <controls:MacRow Title="Width">
+                                    <controls:MacRow x:Name="WidthRow" Title="Width">
                                         <StackPanel Orientation="Horizontal">
                                             <Slider x:Name="WidthSlider" Style="{StaticResource MacSliderStyle}" Width="170"
                                                     Minimum="{x:Static services:AppSettings.MinVisualizerWidth}"
@@ -179,7 +181,7 @@
                                         </StackPanel>
                                     </controls:MacRow>
                                     <Border Style="{StaticResource MacDividerStyle}" />
-                                    <controls:MacRow Title="Height">
+                                    <controls:MacRow x:Name="HeightRow" Title="Height">
                                         <StackPanel Orientation="Horizontal">
                                             <Slider x:Name="HeightSlider" Style="{StaticResource MacSliderStyle}" Width="170"
                                                     Minimum="{x:Static services:AppSettings.MinVisualizerHeight}"
@@ -238,7 +240,7 @@
                         <StackPanel x:Name="TitlePage" Visibility="Collapsed">
                             <Border Style="{StaticResource MacCardStyle}">
                                 <StackPanel>
-                                    <controls:MacRow Title="Show track title" Description="Display what is playing to the left of the visualizer.">
+                                    <controls:MacRow x:Name="ShowTitleRow" Title="Show track title" Description="Display what is playing to the left of the visualizer.">
                                         <CheckBox x:Name="ShowTitleSwitch" Style="{StaticResource MacSwitchStyle}"
                                                   IsChecked="{Binding ShowTitle, Mode=TwoWay}" AutomationProperties.Name="Show track title" />
                                     </controls:MacRow>

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace FluentFlow.Services;
@@ -27,6 +28,16 @@ public static class WindowsTaskbarInfo
         }
     }
 
+    // True when the taskbar is docked at the left or right edge of the screen (taller than it is wide).
+    public static bool IsVertical
+    {
+        get
+        {
+            var taskbar = FindWindow("Shell_TrayWnd", null);
+            return taskbar != IntPtr.Zero && GetWindowRect(taskbar, out var r) && r.Bottom - r.Top > r.Right - r.Left;
+        }
+    }
+
     // The taskbar follows the "system" theme, which is separate from the app theme.
     public static bool SystemUsesLightTheme
     {
@@ -44,4 +55,10 @@ public static class WindowsTaskbarInfo
             return false;
         }
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect { public int Left, Top, Right, Bottom; }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr FindWindow(string? className, string? title);
+    [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
 }

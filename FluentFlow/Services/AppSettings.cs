@@ -9,6 +9,7 @@ namespace FluentFlow.Services;
 
 // Where the widget goes on the taskbar. Auto follows the Windows taskbar icon alignment: with centred icons the free
 // space is at the edges (widget goes to the far side), with left-aligned icons it is next to the notification area.
+// On a taskbar at the left or right edge of the screen Left is the top and Right the bottom.
 public enum WidgetAlignment { Auto, Left, Center, Right }
 
 public enum VisualizerColorMode

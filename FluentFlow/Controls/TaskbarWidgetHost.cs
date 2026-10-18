@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using FluentFlow.Services;
@@ -14,7 +15,7 @@ namespace FluentFlow.Controls;
 public sealed class TaskbarWidgetHost : IDisposable
 {
     private const double GapFromNeighbours = 4; // DIPs
-    private const double VerticalPadding = 2;
+    private const double CrossPadding = 2; // DIPs between the widget and the taskbar's long edges
     private const int ScanEveryTicks = 3;
     private readonly AppSettings _settings;
     private readonly MediaSessionService _media;
@@ -153,12 +154,19 @@ public sealed class TaskbarWidgetHost : IDisposable
         if (NativeMethods.GetWindowRect(_tray, out var taskbar) && notify != IntPtr.Zero
             && NativeMethods.GetWindowRect(notify, out var tray))
         {
+            var taskbarRect = ToRect(taskbar);
+            // A taskbar at the left or right edge runs top to bottom: the widget turns with it. Its "length" below is
+            // then a height, and the bars grow away from the screen edge the taskbar is docked to.
+            var vertical = TaskbarDocking.IsVertical(taskbarRect);
+            var onFarEdge = vertical && IsOnFarSide(taskbarRect);
+            _window!.SetOrientation(vertical ? Orientation.Vertical : Orientation.Horizontal, growFromEnd: onFarEdge);
+
             // The widget has to keep at least its visualizer; the track title is what gives way in a tight spot.
-            var minimumWidth = 2 * _settings.WidgetPadding + _settings.VisualizerWidth;
-            var wishedWidth = Math.Max(minimumWidth, _window!.MeasureDesiredWidth());
-            target = TaskbarDocking.Calculate(ToRect(taskbar), ToRect(tray), _scanner.Buttons,
-                new Size(wishedWidth, TaskbarWidgetWindow.WidgetHeight), minimumWidth, Scale, GapFromNeighbours,
-                VerticalPadding, _settings.Alignment, WindowsTaskbarInfo.IconsCentered, _settings.EdgeOffset);
+            var minimumLength = 2 * _settings.WidgetPadding + _settings.VisualizerWidth;
+            var wishedLength = Math.Max(minimumLength, _window.MeasureDesiredLength());
+            target = TaskbarDocking.Calculate(taskbarRect, ToRect(tray), _scanner.Buttons,
+                new Size(wishedLength, TaskbarWidgetWindow.WidgetHeight), minimumLength, Scale, GapFromNeighbours,
+                CrossPadding, _settings.Alignment, WindowsTaskbarInfo.IconsCentered, _settings.EdgeOffset);
         }
 
         if (target is not { } rect)
@@ -184,6 +192,13 @@ public sealed class TaskbarWidgetHost : IDisposable
         _lastBounds = bounds;
         _shown = true;
         return true;
+    }
+
+    // True when a vertical taskbar is on the right half of its monitor's work area (so the work area is to its left).
+    private static bool IsOnFarSide(Rect taskbar)
+    {
+        var work = MonitorWorkArea.Get(taskbar);
+        return taskbar.Left + taskbar.Width / 2 > work.Left + work.Width / 2;
     }
 
     private static Rect ToRect(NativeRect r) => new(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
