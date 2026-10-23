@@ -26,23 +26,54 @@ internal static class Motion
         DependencyProperty.RegisterAttached("RevealedState", typeof(bool?), typeof(Motion));
 
     // Fades an element in while it travels from an offset (DIPs) to its place and grows from a scale (1 = no growth),
-    // pivoting on its centre. Starts from wherever the element currently is if it was already moving.
-    public static void Enter(UIElement element, double dx = 0, double dy = 0, double scale = 1, int milliseconds = Normal)
+    // pivoting on its centre. Starts from wherever the element currently is if it was already moving. A delay holds
+    // the element at its starting point first, for groups that arrive one after another.
+    public static void Enter(UIElement element, double dx = 0, double dy = 0, double scale = 1, int milliseconds = Normal,
+        int delay = 0)
     {
         var (scaleTransform, move) = Transforms(element);
         Stop(element, scaleTransform, move);
         if (!Enabled) return;
 
-        var duration = TimeSpan.FromMilliseconds(milliseconds);
+        // The delay is part of each animation (a flat start of the curve) rather than a BeginTime, so the element
+        // is held at its starting point instead of showing its final state until the animation begins.
+        var total = milliseconds + delay;
+        var duration = TimeSpan.FromMilliseconds(total);
+        var easing = delay > 0 ? new Delayed(Decelerate, (double)delay / total) : Decelerate;
         // The fade is a little quicker than the move, so the element is solid before it settles.
-        element.BeginAnimation(UIElement.OpacityProperty, From(0, 1, TimeSpan.FromMilliseconds(milliseconds * 0.75), Decelerate));
-        if (dx != 0) move.BeginAnimation(TranslateTransform.XProperty, From(dx, 0, duration, Decelerate));
-        if (dy != 0) move.BeginAnimation(TranslateTransform.YProperty, From(dy, 0, duration, Decelerate));
+        var fadeTotal = milliseconds * 0.75 + delay;
+        var fadeEasing = delay > 0 ? new Delayed(Decelerate, delay / fadeTotal) : Decelerate;
+        element.BeginAnimation(UIElement.OpacityProperty, From(0, 1, TimeSpan.FromMilliseconds(fadeTotal), fadeEasing));
+        if (dx != 0) move.BeginAnimation(TranslateTransform.XProperty, From(dx, 0, duration, easing));
+        if (dy != 0) move.BeginAnimation(TranslateTransform.YProperty, From(dy, 0, duration, easing));
         if (scale != 1)
         {
-            scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, From(scale, 1, duration, Decelerate));
-            scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, From(scale, 1, duration, Decelerate));
+            scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, From(scale, 1, duration, easing));
+            scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, From(scale, 1, duration, easing));
         }
+    }
+
+    // Moves a brush to a new colour from wherever it is now (or at once, with animate: false). The brush must not be
+    // frozen.
+    public static void ColorTo(SolidColorBrush brush, Color to, bool animate = true, int milliseconds = Slow)
+    {
+        var from = brush.Color;
+        brush.BeginAnimation(SolidColorBrush.ColorProperty, null);
+        brush.Color = to;
+        if (animate && Enabled && from != to)
+            brush.BeginAnimation(SolidColorBrush.ColorProperty,
+                new ColorAnimation(from, to, TimeSpan.FromMilliseconds(milliseconds)) { EasingFunction = Smooth, FillBehavior = FillBehavior.Stop });
+    }
+
+    // The same for one stop of a gradient.
+    public static void ColorTo(GradientStop stop, Color to, bool animate = true, int milliseconds = Slow)
+    {
+        var from = stop.Color;
+        stop.BeginAnimation(GradientStop.ColorProperty, null);
+        stop.Color = to;
+        if (animate && Enabled && from != to)
+            stop.BeginAnimation(GradientStop.ColorProperty,
+                new ColorAnimation(from, to, TimeSpan.FromMilliseconds(milliseconds)) { EasingFunction = Smooth, FillBehavior = FillBehavior.Stop });
     }
 
     // The way out: fades the element away while it drifts and shrinks, then calls done. The element ends up hidden
@@ -168,6 +199,13 @@ internal static class Motion
 
     private static DoubleAnimation To(double from, double to, TimeSpan duration, IEasingFunction easing)
         => new(from, to, duration) { EasingFunction = easing, FillBehavior = FillBehavior.HoldEnd };
+
+    // Stays at 0 for the first part of the time, then runs the inner curve over the rest.
+    internal sealed class Delayed(IEasingFunction inner, double start) : IEasingFunction
+    {
+        public double Ease(double normalizedTime)
+            => normalizedTime <= start ? 0 : inner.Ease((normalizedTime - start) / (1 - start));
+    }
 
     // A cubic Bezier easing with the CSS definition (the curves Windows 11 documents): control points (x1, y1) and
     // (x2, y2) between (0, 0) and (1, 1).

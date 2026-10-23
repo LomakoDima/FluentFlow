@@ -197,7 +197,7 @@ public sealed class MediaSessionService : INotifyPropertyChanged, IDisposable
                 var image = new BitmapImage();
                 image.BeginInit();
                 image.CacheOption = BitmapCacheOption.OnLoad;
-                image.DecodePixelWidth = 224;
+                image.DecodePixelWidth = 320; // sharp at 140 DIPs up to about 225 % display scale
                 image.StreamSource = stream;
                 image.EndInit();
                 image.Freeze();

@@ -22,7 +22,7 @@ The settings window, in the style of macOS System Settings, with a live preview 
 The player window and the volume flyout (sample data):
 
 <p>
-  <img src="docs/player.png" alt="Player window" width="340">
+  <img src="docs/player.png" alt="Player window" width="448">
 </p>
 <p>
   <img src="docs/flyout-dark.png" alt="Volume flyout, dark theme" width="368">
@@ -44,12 +44,17 @@ The player window and the volume flyout (sample data):
   - *Track title:* show or hide it, add the artist, maximum width and text size.
 - **Motion.** The player slides out of the widget (towards the screen, away from whichever edge the taskbar is on)
   and fades away again; the settings window grows in and shrinks out, its pages ease in, and options that appear
-  (like the custom colour) open up instead of jumping. In the player a new track brings its title and cover in, play
-  and pause swap with a bounce, and the progress bar glides. Buttons, the context menu, segmented controls and the
+  (like the custom colour) open up instead of jumping. The player opens with its cover settling first and the rest
+  following a beat behind; a new track dissolves to its cover and colours and brings its title in from the side you
+  skipped to; play and pause swap with a small pop, and the progress glides. Buttons, the context menu, segmented controls and the
   widget's hover plate fade rather than switch. The windows, pages and track changes follow the Windows
   *Animation effects* setting and stay still when it is off; the small hover and press effects on buttons always play.
-- **Compact player window.** Cover art, title, artist, previous / play-pause / next, progress. It opens next to the
-  widget and hides again with the widget, the close button or a second click.
+- **Compact player window.** A dark, cinematic card built around the cover: the cover large on the left, its colours
+  glowing softly out from behind it, and an accent taken from it for the play button, the status and the progress.
+  The accent is always kept readable on the card, whatever the cover (white, black or neon). Title (up to two lines),
+  artist, previous / play-pause / next and volume, and a progress line drawn as a row of slim bars in the same language
+  as the taskbar visualizer. Missing covers, long titles, live streams and no media at all each have their own calm
+  state. It opens next to the widget and hides again with the widget, the close button or a second click.
 - **Volume flyout.** Click the speaker icon: real system volume and mute, mouse wheel (2% per notch), keyboard
   (arrows, Esc) and the name of the current output device. Follows the Windows light/dark theme and accent colour.
 - **Start with Windows.** A per-user entry (`HKCU\...\Run`), no elevation. Respects Task Manager's *Startup apps* switch.

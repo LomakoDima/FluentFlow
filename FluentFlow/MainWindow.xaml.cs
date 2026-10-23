@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using FluentFlow.Controls;
 using FluentFlow.Models;
 using FluentFlow.Services;
@@ -16,8 +17,13 @@ namespace FluentFlow;
 public partial class MainWindow : Window
 {
     private const double GapFromWidget = 8; // DIPs
+    private const double ShadowMargin = 24; // DIPs of transparent window around the card, for its shadow (see the XAML)
     private const double SlideDistance = 12; // DIPs the flyout travels while it opens
     private const double HideTravel = 0.5;   // a closing flyout drifts half as far as an opening one
+    private const int ArtworkDissolve = 420; // ms; a cover change is slower than a control's motion, like a cut in a film
+    private const int AmbientDissolve = 640;
+    private static readonly TimeSpan MissingArtworkGrace = TimeSpan.FromMilliseconds(450);
+    private static readonly TimeSpan SkipMemory = TimeSpan.FromSeconds(4);
     private bool _widgetMode;
     private bool _exiting;
 
@@ -37,13 +43,48 @@ public partial class MainWindow : Window
 
     private MediaInfo? _lastMedia;
 
+    // The cover on screen, which lags the media a little: a new track first reports no cover and then its own, and
+    // flashing the placeholder in between would look broken. The placeholder only shows if no cover follows.
+    private readonly ImageSource _fallbackArtwork;
+    private readonly DispatcherTimer _missingArtworkTimer;
+    private ImageSource? _shownArtwork;
+    private string? _shownArtworkTitle;
+
+    // Colours from the cover. The accent is inherited by everything in the window (PlayerAccent); the glow is the card's
+    // wash.
+    private readonly SolidColorBrush _accent = new(ArtworkPalette.Default.Accent);
+    private readonly GradientStop _glowCenter = new(ArtworkPalette.Default.Glow, 0);
+    private readonly GradientStop _glowMiddle = new(ArtworkPalette.Default.GlowSecondary, 0.6);
+    private readonly GradientStop _glowEdge = new(Colors.Transparent, 1);
+
+    // The last skip button pressed, so the new title can come in from the side it was asked for.
+    private int _skipDirection = 1;
+    private readonly Stopwatch _sinceSkip = new();
+
     public MainWindow(MediaSessionService media, SystemVolumeService volume)
     {
         InitializeComponent();
+        PlayerAccent.SetBrush(this, _accent);
+        Glow.Background = new RadialGradientBrush
+        {
+            Center = new Point(0.18, 0.3), GradientOrigin = new Point(0.18, 0.3), RadiusX = 0.95, RadiusY = 1.5,
+            GradientStops = { _glowCenter, _glowMiddle, _glowEdge }
+        };
+        _fallbackArtwork = (ImageSource)FindResource("FallbackArtwork");
+        _missingArtworkTimer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher) { Interval = MissingArtworkGrace };
+        _missingArtworkTimer.Tick += (_, _) =>
+        {
+            _missingArtworkTimer.Stop();
+            ShowArtwork(_fallbackArtwork, IsVisible);
+        };
+
         DataContext = media;
         VolumePanel.DataContext = volume;
         VolumeFlyoutPopup.PlacementTarget = VolumeControl;
         media.PropertyChanged += Media_PropertyChanged;
+        IsVisibleChanged += (_, _) => { if (IsVisible) PlayEntrance(); };
+        ShowArtwork(media.CurrentMedia.Artwork ?? _fallbackArtwork, animate: false);
+        ShowPlayState(media.CurrentMedia.IsPlaying, animate: false);
         ShowProgress(media.CurrentMedia, null);
     }
 
@@ -103,11 +144,13 @@ public partial class MainWindow : Window
             _anchored = false; // nowhere to anchor: it just fades in where it is
             return;
         }
-        var size = new Size(Width * scale, Height * scale);
+        // The card is placed, not the window: the shadow margin around it may hang over the taskbar or the screen edge.
+        var margin = ShadowMargin * scale;
+        var size = new Size(Width * scale - 2 * margin, Height * scale - 2 * margin);
         var placement = FlyoutPlacement.Calculate(widgetPixels, size, MonitorWorkArea.Get(widgetPixels),
             GapFromWidget * scale, GapFromWidget * scale);
         _anchored = true;
-        _rest = placement.Location;
+        _rest = placement.Location - new Vector(margin, margin);
         _slide = SlideDistance * scale;
         // It grows away from the taskbar, so it starts out displaced towards it.
         _towardTaskbar = placement.Side switch
@@ -209,30 +252,109 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         StopMotion();
+        _missingArtworkTimer.Stop();
         base.OnClosed(e);
     }
 
-    // What changed on screen is what moves: a new track slides its text in and pops the cover, play and pause swap with
-    // a small bounce, and the progress bar glides between the once-a-second position updates.
+    // What changed on screen is what moves: a new track brings its title in from the side that was skipped to and
+    // dissolves to its cover and colours, play and pause swap with a small pop, and the progress glides between the
+    // once-a-second position updates.
     private void Media_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(MediaSessionService.CurrentMedia) || sender is not MediaSessionService media) return;
         var before = _lastMedia;
         var now = media.CurrentMedia;
         ShowProgress(now, before);
+        UpdateArtwork(now);
         _lastMedia = now;
-        if (before is null || !IsVisible) return;
+        var animate = before is not null && IsVisible;
+        if (before is null || before.IsPlaying != now.IsPlaying) ShowPlayState(now.IsPlaying, animate);
+        if (!animate) return;
 
-        if (before.Title != now.Title || before.Artist != now.Artist)
-            Motion.Enter(TrackText, dx: 10, milliseconds: Motion.Slow);
-        if (!ReferenceEquals(before.Artwork, now.Artwork))
-            Motion.Enter(ArtworkFrame, scale: 0.88, milliseconds: Motion.Slow);
-        if (before.IsPlaying != now.IsPlaying)
-            Motion.Enter(PlayGlyph, scale: 0.6);
+        if (before!.Title != now.Title || before.Artist != now.Artist)
+        {
+            var direction = _sinceSkip.IsRunning && _sinceSkip.Elapsed < SkipMemory ? _skipDirection : 1;
+            _sinceSkip.Reset();
+            Motion.Enter(TrackText, dx: 16 * direction, milliseconds: Motion.Slow);
+        }
+    }
+
+    // Opening: the cover settles first and the rest follows a beat behind, top to bottom.
+    private void PlayEntrance()
+    {
+        Motion.Enter(ArtworkFrame, scale: 0.94, milliseconds: Motion.Slow);
+        Motion.Enter(TrackText, dy: 6, milliseconds: Motion.Slow, delay: 40);
+        Motion.Enter(TransportControls, dy: 6, milliseconds: Motion.Slow, delay: 80);
+        Motion.Enter(Timeline, dy: 4, milliseconds: Motion.Slow, delay: 110);
+    }
+
+    private void UpdateArtwork(MediaInfo now)
+    {
+        if (now.Artwork is not null)
+        {
+            _missingArtworkTimer.Stop();
+            if (!ReferenceEquals(now.Artwork, _shownArtwork)) ShowArtwork(now.Artwork, IsVisible);
+        }
+        else if (!ReferenceEquals(_shownArtwork, _fallbackArtwork) && !_missingArtworkTimer.IsEnabled)
+        {
+            _missingArtworkTimer.Start();
+        }
+    }
+
+    // The new cover dissolves in over the old one, settling from a slight zoom when it belongs to a new track; the
+    // ambient light and the accent follow it more slowly. Apps often send the same cover again for the same track,
+    // which then just quietly replaces itself.
+    private void ShowArtwork(ImageSource artwork, bool animate)
+    {
+        var title = (DataContext as MediaSessionService)?.CurrentMedia.Title;
+        var newTrack = title != _shownArtworkTitle;
+        _shownArtwork = artwork;
+        _shownArtworkTitle = title;
+
+        ArtworkPrevious.Source = animate ? ArtworkCurrent.Source : null;
+        AmbientPrevious.Source = animate ? AmbientCurrent.Source : null;
+        ArtworkCurrent.Source = artwork;
+        AmbientCurrent.Source = artwork;
+
+        var palette = ReferenceEquals(artwork, _fallbackArtwork) ? ArtworkPalette.Default : ArtworkPalette.From(artwork);
+        var clear = Color.FromArgb(0, palette.GlowSecondary.R, palette.GlowSecondary.G, palette.GlowSecondary.B);
+        Motion.ColorTo(_accent, palette.Accent, animate, ArtworkDissolve);
+        Motion.ColorTo(_glowCenter, palette.Glow, animate, AmbientDissolve);
+        Motion.ColorTo(_glowMiddle, palette.GlowSecondary, animate, AmbientDissolve);
+        Motion.ColorTo(_glowEdge, clear, animate, AmbientDissolve);
+
+        if (!animate || !Motion.Enabled)
+        {
+            Motion.Reset(ArtworkCurrent);
+            Motion.Reset(AmbientCurrent);
+            ArtworkPrevious.Source = AmbientPrevious.Source = null;
+            return;
+        }
+        Motion.Reset(ArtworkPrevious);
+        Motion.Reset(AmbientPrevious);
+        Motion.Enter(ArtworkCurrent, scale: newTrack ? 1.06 : 1, milliseconds: ArtworkDissolve);
+        Motion.FadeTo(ArtworkPrevious, 0, ArtworkDissolve);
+        Motion.Enter(AmbientCurrent, milliseconds: AmbientDissolve);
+        Motion.FadeTo(AmbientPrevious, 0, AmbientDissolve);
+    }
+
+    private void ShowPlayState(bool playing, bool animate)
+    {
+        var (shown, hidden) = playing ? (PauseGlyph, PlayGlyph) : (PlayGlyph, PauseGlyph);
+        if (animate)
+        {
+            Motion.Enter(shown, scale: 0.5);
+            Motion.FadeTo(hidden, 0, Motion.Quick);
+            return;
+        }
+        Motion.Reset(shown);
+        Motion.Reset(hidden);
+        hidden.Opacity = 0;
     }
 
     private void ShowProgress(MediaInfo now, MediaInfo? before)
     {
+        Progress.ShowsPosition = now.DurationSeconds > 0;
         var from = Progress.Value;
         Progress.BeginAnimation(RangeBase.ValueProperty, null);
         Progress.Maximum = now.ProgressMaximum;
@@ -250,13 +372,25 @@ public partial class MainWindow : Window
     private void Volume_Click(object sender, RoutedEventArgs e) => VolumeFlyoutPopup.Toggle();
 
     private async void Previous_Click(object sender, RoutedEventArgs e)
-        => await ((MediaSessionService)DataContext).PreviousAsync();
+    {
+        RememberSkip(-1);
+        await ((MediaSessionService)DataContext).PreviousAsync();
+    }
 
     private async void PlayPause_Click(object sender, RoutedEventArgs e)
         => await ((MediaSessionService)DataContext).PlayPauseAsync();
 
     private async void Next_Click(object sender, RoutedEventArgs e)
-        => await ((MediaSessionService)DataContext).NextAsync();
+    {
+        RememberSkip(1);
+        await ((MediaSessionService)DataContext).NextAsync();
+    }
+
+    private void RememberSkip(int direction)
+    {
+        _skipDirection = direction;
+        _sinceSkip.Restart();
+    }
 
     // Buttons mark their own clicks as handled, so this only sees presses on the window's background.
     private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

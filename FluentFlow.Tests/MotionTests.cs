@@ -58,4 +58,14 @@ public class MotionTests
         var y = 3 * (1 - t) * (1 - t) * t * 0.9 + 3 * (1 - t) * t * t * 1 + t * t * t;
         Assert.Equal(y, Motion.Decelerate.Ease(0.5), 4);
     }
+
+    [Fact]
+    public void A_delayed_curve_holds_still_then_runs_the_whole_curve()
+    {
+        var delayed = new Motion.Delayed(Motion.Decelerate, 0.25);
+        Assert.Equal(0, delayed.Ease(0.1));
+        Assert.Equal(0, delayed.Ease(0.25));
+        Assert.Equal(Motion.Decelerate.Ease(0.5), delayed.Ease(0.625), 9);
+        Assert.Equal(1, delayed.Ease(1));
+    }
 }
