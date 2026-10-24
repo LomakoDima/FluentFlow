@@ -21,12 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Placement, docking, motion curves, the cover palette, the progress bars and settings logic are free of windows, so the tests compile those files instead of referencing the WPF exe. -->
+    <!-- Placement, docking, motion curves, the cover palette, the progress bars, the settings stage framing and settings logic are free of windows, so the tests compile those files instead of referencing the WPF exe. -->
     <Compile Include="..\FluentFlow\Controls\FlyoutPlacement.cs" Link="FlyoutPlacement.cs" />
     <Compile Include="..\FluentFlow\Controls\TaskbarDocking.cs" Link="TaskbarDocking.cs" />
     <Compile Include="..\FluentFlow\Controls\Motion.cs" Link="Motion.cs" />
     <Compile Include="..\FluentFlow\Controls\ArtworkPalette.cs" Link="ArtworkPalette.cs" />
     <Compile Include="..\FluentFlow\Controls\PlaybackTicks.cs" Link="PlaybackTicks.cs" />
+    <Compile Include="..\FluentFlow\Controls\StageFraming.cs" Link="StageFraming.cs" />
     <Compile Include="..\FluentFlow\Services\AppSettings.cs" Link="AppSettings.cs" />
   </ItemGroup>
 

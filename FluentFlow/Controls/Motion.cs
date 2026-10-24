@@ -65,6 +65,19 @@ internal static class Motion
                 new ColorAnimation(from, to, TimeSpan.FromMilliseconds(milliseconds)) { EasingFunction = Smooth, FillBehavior = FillBehavior.Stop });
     }
 
+    // Moves any animatable number (an offset, a width) to a new value from wherever it is now, so a target that keeps
+    // changing (a slider being dragged) is followed smoothly. Without animations it just jumps there.
+    public static void Glide(DependencyObject target, DependencyProperty property, double to, bool animate = true,
+        int milliseconds = Slow)
+    {
+        var animatable = (IAnimatable)target;
+        var from = (double)target.GetValue(property);
+        animatable.BeginAnimation(property, null);
+        target.SetValue(property, to);
+        if (animate && Enabled && double.IsFinite(from) && Math.Abs(from - to) > 0.01)
+            animatable.BeginAnimation(property, From(from, to, TimeSpan.FromMilliseconds(milliseconds), Decelerate));
+    }
+
     // The same for one stop of a gradient.
     public static void ColorTo(GradientStop stop, Color to, bool animate = true, int milliseconds = Slow)
     {

@@ -12,11 +12,11 @@ The widget on the taskbar: the track title and the visualizer (rendered from the
 
 ![Taskbar widget](docs/taskbar-widget-title.png)
 
-The settings window, in the style of macOS System Settings, with a live preview of the widget on a mock taskbar:
+The settings window, on the Windows 11 Mica material, with a live close-up of the widget on a model of your taskbar:
 
 <p>
-  <img src="docs/settings-position.png" alt="Settings: position" width="380">
-  <img src="docs/settings-appearance.png" alt="Settings: appearance" width="380">
+  <img src="docs/settings-position.png" alt="Settings: placement" width="470">
+  <img src="docs/settings-appearance.png" alt="Settings: visualizer" width="470">
 </p>
 
 The player window and the volume flyout (sample data):
@@ -35,16 +35,21 @@ The player window and the volume flyout (sample data):
   player; right-click for *Open*, *Settings*, *Start with Windows* and *Exit*. It also works on a taskbar docked at
   the left or right edge of the screen: the visualizer turns to run along it (without the title, which has no room
   there) and the player opens beside it.
-- **Settings.** Everything below changes the widget live and is remembered between runs.
-  - *Position:* Auto, Left, Center or Right (Top, Center or Bottom on a side taskbar), plus a distance from the edge. **Auto follows your Windows taskbar icon
+- **Settings.** Everything below changes the widget live and is remembered between runs. The window sits on the
+  Windows 11 Mica material, follows the Windows light or dark mode and uses your Windows accent colour for its controls.
+  On the widget pages a *stage* shows the real widget on a model of your taskbar: close up (the camera pans after the
+  widget when it moves) and whole, with a frame on the part in view. It is resizable and works fully from the keyboard.
+  - *General:* start with Windows, about, and a reset that asks first.
+  - *Placement:* Auto, Left, Center or Right (Top, Center or Bottom on a side taskbar), plus a distance from the edge. **Auto follows your Windows taskbar icon
     alignment**: with centred icons the free space is at the edge, so the widget goes there; with left-aligned
     icons it sits next to the notification area. The widget always takes a free gap and never covers an icon.
-  - *Appearance:* colour (FluentFlow, Windows accent or any custom colour), opacity, width, height, bar thickness,
-    corner radius, mirrored or not, side padding.
+  - *Visualizer:* colour (FluentFlow, Windows accent or any custom colour), opacity, width, height, side padding,
+    bar thickness, corner radius, mirrored or not.
   - *Track title:* show or hide it, add the artist, maximum width and text size.
 - **Motion.** The player slides out of the widget (towards the screen, away from whichever edge the taskbar is on)
-  and fades away again; the settings window grows in and shrinks out, its pages ease in, and options that appear
-  (like the custom colour) open up instead of jumping. The player opens with its cover settling first and the rest
+  and fades away again; in the settings the selection mark slides between pages, pages rise into place, segmented
+  choices glide over, switches slide and the stage's camera pans to the widget; options that appear (like the custom
+  colour or the reset confirmation) open up instead of jumping. The player opens with its cover settling first and the rest
   following a beat behind; a new track dissolves to its cover and colours and brings its title in from the side you
   skipped to; play and pause swap with a small pop, and the progress glides. Buttons, the context menu, segmented controls and the
   widget's hover plate fade rather than switch. The windows, pages and track changes follow the Windows
@@ -141,8 +146,8 @@ dotnet test FluentFlow.slnx
 | --- | --- |
 | `FluentFlow/Controls` | Visualizer, taskbar widget (view, window, host, docking maths), volume flyout, popup helper |
 | `FluentFlow/Services` | Media session, audio capture and FFT, system volume, theme, settings, startup registration |
-| `FluentFlow/SettingsWindow.xaml` | The macOS-style settings window |
-| `FluentFlow/Resources` | Styles: Windows 11 flyout and menu, macOS-style settings |
+| `FluentFlow/SettingsWindow.xaml` | The settings window |
+| `FluentFlow/Resources` | Styles: the player, the Windows 11 flyout and menu, the settings design system |
 | `FluentFlow.Tests` | Unit tests for the geometry and the settings |
 
 ## License

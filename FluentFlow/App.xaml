@@ -7,7 +7,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/PlayerStyles.xaml" />
                 <ResourceDictionary Source="Resources/FlyoutStyles.xaml" />
-                <ResourceDictionary Source="Resources/MacStyles.xaml" />
+                <ResourceDictionary Source="Resources/SettingsStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

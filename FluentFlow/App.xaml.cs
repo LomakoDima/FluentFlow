@@ -174,10 +174,10 @@ namespace FluentFlow
         // One settings window at a time: a second request brings the open one forward.
         private void ShowSettings()
         {
-            if (_settings is null || _media is null || _visualizer is null) return;
+            if (_settings is null || _media is null || _visualizer is null || _theme is null) return;
             if (_settingsWindow is null)
             {
-                _settingsWindow = new SettingsWindow(_settings, _media, _visualizer);
+                _settingsWindow = new SettingsWindow(_settings, _media, _visualizer, _theme);
                 _settingsWindow.Closed += (_, _) => _settingsWindow = null;
                 _settingsWindow.Show();
             }

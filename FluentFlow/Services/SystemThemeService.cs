@@ -14,6 +14,12 @@ public sealed class SystemThemeService : IDisposable
     private readonly bool? _forceLight;
     private bool _disposed;
 
+    // The app theme last applied; windows that tint their own frame read it.
+    public bool IsLight { get; private set; }
+
+    // Raised after the brushes were replaced (at startup and on every Windows theme or accent change).
+    public event EventHandler? Applied;
+
     // forceLight is for testing only (--theme light|dark); null follows Windows.
     public SystemThemeService(Dispatcher dispatcher, bool? forceLight = null)
     {
@@ -26,39 +32,66 @@ public sealed class SystemThemeService : IDisposable
     {
         if (_disposed) return;
         var light = _forceLight ?? IsLightTheme();
+        IsLight = light;
         var accent = ToColor(_settings.GetColorValue(light ? UIColorType.AccentDark1 : UIColorType.AccentLight2));
         var resources = Application.Current.Resources;
 
         void Set(string key, string color) => resources[key] = Brush(ToColor(color));
 
-        // macOS-style settings window.
+        // Settings window (Resources/SettingsStyles.xaml). It sits on Mica, so most surfaces are thin layers of white
+        // or black over it rather than solid colours.
         if (light)
         {
-            Set("MacWindowBrush", "#FFF2F2F4");
-            Set("MacSidebarBrush", "#FFE6E6EA");
-            Set("MacCardBrush", "#FFFFFFFF");
-            Set("MacBorderBrush", "#FFD6D6DB");
-            Set("MacDividerBrush", "#FFE6E6EA");
-            Set("MacTextBrush", "#FF1D1D1F");
-            Set("MacSecondaryTextBrush", "#FF86868B");
-            Set("MacControlBrush", "#FFE3E3E8");
-            Set("MacControlSelectedBrush", "#FFFFFFFF");
-            Set("MacHoverBrush", "#14000000");
+            Set("SettingsWindowBrush", "#FFF3F3F3");
+            Set("SettingsLayerBrush", "#80FFFFFF");
+            Set("SettingsLayerEdgeBrush", "#0F000000");
+            Set("SettingsCardBrush", "#B3FFFFFF");
+            Set("SettingsCardStrokeBrush", "#0F000000");
+            Set("SettingsDividerBrush", "#0F000000");
+            Set("SettingsTextBrush", "#E4000000");
+            Set("SettingsSecondaryTextBrush", "#9E000000");
+            Set("SettingsTertiaryTextBrush", "#72000000");
+            Set("SettingsControlBrush", "#B3FFFFFF");
+            Set("SettingsControlHoverBrush", "#80F9F9F9");
+            Set("SettingsControlStrokeBrush", "#14000000");
+            Set("SettingsControlStrongBrush", "#72000000");
+            Set("SettingsTrackBrush", "#29000000");
+            Set("SettingsThumbBrush", "#FFFFFFFF");
+            Set("SettingsPillBrush", "#FFFFFFFF");
+            Set("SettingsSubtleHoverBrush", "#09000000");
+            Set("SettingsSubtlePressedBrush", "#06000000");
+            Set("SettingsSelectedBrush", "#0C000000");
+            Set("SettingsOnAccentBrush", "#FFFFFFFF");
+            Set("SettingsDangerBrush", "#FFC42B1C");
+            Set("SettingsOnDangerBrush", "#FFFFFFFF");
         }
         else
         {
-            Set("MacWindowBrush", "#FF1E1E20");
-            Set("MacSidebarBrush", "#FF2A2A2D");
-            Set("MacCardBrush", "#FF2C2C2E");
-            Set("MacBorderBrush", "#FF3E3E42");
-            Set("MacDividerBrush", "#FF3A3A3D");
-            Set("MacTextBrush", "#FFF5F5F7");
-            Set("MacSecondaryTextBrush", "#FF98989F");
-            Set("MacControlBrush", "#FF3B3B3F");
-            Set("MacControlSelectedBrush", "#FF6A6A70");
-            Set("MacHoverBrush", "#1AFFFFFF");
+            Set("SettingsWindowBrush", "#FF202020");
+            Set("SettingsLayerBrush", "#4C3A3A3A");
+            Set("SettingsLayerEdgeBrush", "#19FFFFFF");
+            Set("SettingsCardBrush", "#0DFFFFFF");
+            Set("SettingsCardStrokeBrush", "#12FFFFFF");
+            Set("SettingsDividerBrush", "#15FFFFFF");
+            Set("SettingsTextBrush", "#FFFFFFFF");
+            Set("SettingsSecondaryTextBrush", "#C5FFFFFF");
+            Set("SettingsTertiaryTextBrush", "#87FFFFFF");
+            Set("SettingsControlBrush", "#0FFFFFFF");
+            Set("SettingsControlHoverBrush", "#15FFFFFF");
+            Set("SettingsControlStrokeBrush", "#14FFFFFF");
+            Set("SettingsControlStrongBrush", "#8BFFFFFF");
+            Set("SettingsTrackBrush", "#33FFFFFF");
+            Set("SettingsThumbBrush", "#FF454545");
+            Set("SettingsPillBrush", "#24FFFFFF");
+            Set("SettingsSubtleHoverBrush", "#0FFFFFFF");
+            Set("SettingsSubtlePressedBrush", "#0AFFFFFF");
+            Set("SettingsSelectedBrush", "#14FFFFFF");
+            Set("SettingsOnAccentBrush", "#FF000000");
+            Set("SettingsDangerBrush", "#FFFF99A4");
+            Set("SettingsOnDangerBrush", "#FF000000");
         }
-        resources["MacAccentBrush"] = Brush(accent);
+        // The accent variant Windows itself uses on this background, so it always reads well.
+        resources["SettingsAccentBrush"] = Brush(accent);
         resources["WindowsAccentBrush"] = Brush(ToColor(_settings.GetColorValue(UIColorType.Accent)));
 
         // The taskbar follows the system theme, not the app theme, so its text colour is chosen separately.
@@ -66,6 +99,7 @@ public sealed class SystemThemeService : IDisposable
         Set("TaskbarTextBrush", taskbarLight ? "#E4000000" : "#FFFFFFFF");
         Set("TaskbarSecondaryTextBrush", taskbarLight ? "#9E000000" : "#C5FFFFFF");
         Set("TaskbarBackgroundBrush", taskbarLight ? "#FFF3F3F3" : "#FF1C1C1C");
+        Set("TaskbarEdgeBrush", taskbarLight ? "#1F000000" : "#14FFFFFF");
 
         if (light)
         {
@@ -94,6 +128,7 @@ public sealed class SystemThemeService : IDisposable
             Set("FlyoutThumbStrokeBrush", "#33FFFFFF");
         }
         resources["FlyoutAccentBrush"] = Brush(accent);
+        Applied?.Invoke(this, EventArgs.Empty);
     }
 
     // UIColorType.Background is white in the light app mode and black in the dark one.
