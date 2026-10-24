@@ -10,6 +10,8 @@
     <SolidColorBrush x:Key="PlayerHoverBrush" Color="#17FFFFFF" />
     <SolidColorBrush x:Key="PlayerTrackBrush" Color="#2BFFFFFF" />
     <SolidColorBrush x:Key="PlayerOnAccentBrush" Color="#141418" />
+    <!-- FluentFlow's own colour for the taskbar visualizer (the "FluentFlow" colour setting, TaskbarWidgetView). -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#D7AC99" />
 
     <FontFamily x:Key="PlayerDisplayFont">Segoe UI Variable Display, Segoe UI</FontFamily>
     <FontFamily x:Key="PlayerTextFont">Segoe UI Variable Text, Segoe UI</FontFamily>
