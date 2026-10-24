@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:FluentFlow.Controls"
         xmlns:services="clr-namespace:FluentFlow.Services"
-        Title="FluentFlow Settings" Width="940" Height="660" MinWidth="780" MinHeight="540"
+        Title="FluentFlow Settings" Icon="pack://application:,,,/Assets/FluentFlow.ico"
+        Width="940" Height="660" MinWidth="780" MinHeight="540"
         WindowStartupLocation="CenterScreen" ResizeMode="CanResize"
         Background="{DynamicResource SettingsWindowBrush}"
         FontFamily="{StaticResource SettingsTextFont}" FontSize="14" UseLayoutRounding="True"
@@ -27,8 +28,7 @@
 
         <!-- Brand, in the title band. -->
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0,0,0">
-            <Path Data="{StaticResource FluentFlowMarkGeometry}" Fill="{DynamicResource AccentBrush}" Width="22" Height="20"
-                  VerticalAlignment="Center" />
+            <Image Source="{StaticResource FluentFlowMark}" Width="22" Height="20" VerticalAlignment="Center" />
             <TextBlock Text="FluentFlow" FontFamily="{StaticResource SettingsDisplayFont}" FontSize="14" FontWeight="SemiBold"
                        VerticalAlignment="Center" Margin="12,0,0,1" />
             <TextBlock Text="Settings" FontSize="14" Foreground="{DynamicResource SettingsTertiaryTextBrush}"
@@ -145,13 +145,9 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <!-- The mark on the player's own dark surface. -->
-                                    <Border Width="56" Height="56" CornerRadius="14" Background="#FF16161A"
-                                            BorderBrush="#24FFFFFF" BorderThickness="1" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="26">
-                                            <Path Data="{StaticResource FluentFlowMarkGeometry}" Fill="{DynamicResource AccentBrush}" />
-                                        </Viewbox>
-                                    </Border>
+                                    <!-- The app icon itself. -->
+                                    <Image Source="pack://application:,,,/Assets/FluentFlow-256.png" Width="64" Height="64"
+                                           RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="FluentFlow" FontFamily="{StaticResource SettingsDisplayFont}" FontSize="18"
                                                    FontWeight="SemiBold" TextOptions.TextFormattingMode="Ideal" />

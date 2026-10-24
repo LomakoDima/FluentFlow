@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Tide: a record seen face on, split by a single wave of negative space. Warm light above, deep music below. -->
+  <defs>
+    <linearGradient id="t-warm" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="0.6" stop-color="#F0A88E"/><stop offset="1" stop-color="#D9785E"/>
+    </linearGradient>
+    <linearGradient id="t-deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4A2C44"/><stop offset="1" stop-color="#1A141E"/>
+    </linearGradient>
+    <clipPath id="t-disc"><circle cx="128" cy="128" r="104"/></clipPath>
+    <mask id="t-cut">
+      <rect width="256" height="256" fill="#FFFFFF"/>
+      <path d="M -8,152 C 48,182 96,172 128,136 C 160,100 208,92 264,118 L 264,264 L -8,264 Z"
+            fill="#000000" stroke="#000000" stroke-width="20" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g clip-path="url(#t-disc)">
+    <rect width="256" height="256" fill="url(#t-warm)" mask="url(#t-cut)"/>
+    <path d="M -8,152 C 48,182 96,172 128,136 C 160,100 208,92 264,118 L 264,264 L -8,264 Z" fill="url(#t-deep)"/>
+  </g>
+</svg>

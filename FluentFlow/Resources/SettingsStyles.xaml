@@ -44,8 +44,42 @@
     <FontFamily x:Key="SettingsDisplayFont">Segoe UI Variable Display, Segoe UI</FontFamily>
     <FontFamily x:Key="SettingsTextFont">Segoe UI Variable Text, Segoe UI</FontFamily>
 
-    <!-- FluentFlow's mark: five mirrored bars, the visualizer in miniature, on a 20 x 20 grid. -->
-    <Geometry x:Key="FluentFlowMarkGeometry">M1,7 H3.6 V13 H1 Z M5.35,3 H7.95 V17 H5.35 Z M9.7,0.5 H12.3 V19.5 H9.7 Z M14.05,4.5 H16.65 V15.5 H14.05 Z M18.4,8 H21 V12 H18.4 Z</Geometry>
+    <!-- FluentFlow's mark (branding/icon): the mirrored visualizer, warm above the wave and deeper below it. This is
+         the small-size form, where the wave is the line between the two tones; the app icon at 40 px and up also cuts
+         the wave out of the bars. On the icon's 256 grid. -->
+    <GeometryGroup x:Key="FluentFlowMarkBars">
+        <RectangleGeometry Rect="45,100,22,56" RadiusX="11" RadiusY="11" />
+        <RectangleGeometry Rect="81,76,22,104" RadiusX="11" RadiusY="11" />
+        <RectangleGeometry Rect="117,52,22,152" RadiusX="11" RadiusY="11" />
+        <RectangleGeometry Rect="153,76,22,104" RadiusX="11" RadiusY="11" />
+        <RectangleGeometry Rect="189,100,22,56" RadiusX="11" RadiusY="11" />
+    </GeometryGroup>
+    <DrawingImage x:Key="FluentFlowMark">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <DrawingGroup ClipGeometry="M 30,136 C 62,108 94,108 128,128 C 162,148 194,148 226,120 L 226,0 L 30,0 Z">
+                    <GeometryDrawing Geometry="{StaticResource FluentFlowMarkBars}">
+                        <GeometryDrawing.Brush>
+                            <LinearGradientBrush MappingMode="Absolute" StartPoint="0,52" EndPoint="0,140">
+                                <GradientStop Color="#FCD8C4" Offset="0" />
+                                <GradientStop Color="#F0A88E" Offset="1" />
+                            </LinearGradientBrush>
+                        </GeometryDrawing.Brush>
+                    </GeometryDrawing>
+                </DrawingGroup>
+                <DrawingGroup ClipGeometry="M 30,136 C 62,108 94,108 128,128 C 162,148 194,148 226,120 L 226,256 L 30,256 Z">
+                    <GeometryDrawing Geometry="{StaticResource FluentFlowMarkBars}">
+                        <GeometryDrawing.Brush>
+                            <LinearGradientBrush MappingMode="Absolute" StartPoint="0,120" EndPoint="0,204">
+                                <GradientStop Color="#DE8268" Offset="0" />
+                                <GradientStop Color="#A9473A" Offset="1" />
+                            </LinearGradientBrush>
+                        </GeometryDrawing.Brush>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
 
     <!-- Keyboard focus (WPF draws it only for keyboard focus): a two-tone ring that shows on any surface. -->
     <Style x:Key="SettingsFocusVisualStyle">

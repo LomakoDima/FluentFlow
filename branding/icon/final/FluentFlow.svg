@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>FluentFlow</title>
+  <defs>
+    <linearGradient id="ff-tile" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="236">
+      <stop offset="0" stop-color="#2E2433"/><stop offset="1" stop-color="#141117"/>
+    </linearGradient>
+    <linearGradient id="ff-edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/><stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.03"/>
+    </linearGradient>
+    <mask id="ff-cut">
+      <rect width="256" height="256" fill="#FFFFFF"/>
+      <path d="M 30,136 C 62,108 94,108 128,128 C 162,148 194,148 226,120" fill="none" stroke="#000000" stroke-width="10" stroke-linecap="round"/>
+    </mask>
+    <linearGradient id="ff-warm" gradientUnits="userSpaceOnUse" x1="0" y1="52" x2="0" y2="140">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="1" stop-color="#F0A88E"/>
+    </linearGradient>
+    <linearGradient id="ff-deep" gradientUnits="userSpaceOnUse" x1="0" y1="120" x2="0" y2="204">
+      <stop offset="0" stop-color="#DE8268"/><stop offset="1" stop-color="#A9473A"/>
+    </linearGradient>
+    <clipPath id="ff-above"><path d="M 30,136 C 62,108 94,108 128,128 C 162,148 194,148 226,120 L 226,0 L 30,0 Z"/></clipPath>
+    <clipPath id="ff-below"><path d="M 30,136 C 62,108 94,108 128,128 C 162,148 194,148 226,120 L 226,256 L 30,256 Z"/></clipPath>
+  </defs>
+  <rect x="20" y="20" width="216" height="216" rx="56" fill="url(#ff-tile)"/>
+  <rect x="21" y="21" width="214" height="214" rx="55" fill="none" stroke="url(#ff-edge)" stroke-width="2"/>
+  <g mask="url(#ff-cut)">
+    <g clip-path="url(#ff-above)" fill="url(#ff-warm)">
+      <rect x="45" y="100" width="22" height="56" rx="11"/>
+      <rect x="81" y="76" width="22" height="104" rx="11"/>
+      <rect x="117" y="52" width="22" height="152" rx="11"/>
+      <rect x="153" y="76" width="22" height="104" rx="11"/>
+      <rect x="189" y="100" width="22" height="56" rx="11"/>
+    </g>
+    <g clip-path="url(#ff-below)" fill="url(#ff-deep)">
+      <rect x="45" y="100" width="22" height="56" rx="11"/>
+      <rect x="81" y="76" width="22" height="104" rx="11"/>
+      <rect x="117" y="52" width="22" height="152" rx="11"/>
+      <rect x="153" y="76" width="22" height="104" rx="11"/>
+      <rect x="189" y="100" width="22" height="56" rx="11"/>
+    </g>
+  </g>
+</svg>

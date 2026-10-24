@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Horizon: FluentFlow lives on the taskbar. The line is the taskbar; sound rises off it like light at dawn. -->
+  <defs>
+    <linearGradient id="h-tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B2131"/><stop offset="1" stop-color="#15121A"/>
+    </linearGradient>
+    <linearGradient id="h-sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="1" stop-color="#F0A88E"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="20" width="216" height="216" rx="56" fill="url(#h-tile)"/>
+  <path d="M 98,170 A 30,30 0 0 1 158,170 Z" fill="url(#h-sun)"/>
+  <path d="M 76,170 A 52,52 0 0 1 180,170" fill="none" stroke="#F0A88E" stroke-opacity="0.75" stroke-width="12" stroke-linecap="round"/>
+  <path d="M 54,170 A 74,74 0 0 1 202,170" fill="none" stroke="#D9785E" stroke-opacity="0.45" stroke-width="12" stroke-linecap="round"/>
+  <rect x="44" y="178" width="168" height="12" rx="6" fill="#FBD3BE"/>
+</svg>

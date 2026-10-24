@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FluentFlow Icon</title>
+<style>
+  :root {
+    --page: #0f0e12; --card: #18161c; --stroke: #2a2630; --text: #f4f2f6; --muted: #a29ba9; --faint: #6f6876;
+    --peach: #f0a88e; --dark-plate: #1c1b20; --light-plate: #f3f1ee; --taskbar-dark: #202020; --taskbar-light: #ececec;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--text); font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding: 48px 32px 72px; }
+  h1 { font: 600 30px/1.2 "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font: 600 18px/1.3 "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 0; }
+  h3 { font: 600 22px/1.3 "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 0 0 6px; }
+  h4 { font: 600 15px/1.3 "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 28px 0 10px; }
+  .lede, .note { color: var(--muted); margin: 0 0 28px; max-width: 780px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--stroke); border-radius: 16px; padding: 18px; }
+  .card.basis { border-color: var(--peach); }
+  .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .num { color: var(--faint); font-variant-numeric: tabular-nums; }
+  .badge { margin-left: auto; font-size: 12px; color: #1a1210; background: var(--peach); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
+  .idea { color: var(--muted); margin: 0 0 6px; }
+  .verdict { color: var(--text); margin: 0 0 14px; font-size: 13px; }
+  .plates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .plate { border-radius: 12px; display: grid; place-items: center; aspect-ratio: 1; }
+  .dark { background: var(--dark-plate); }
+  .light { background: var(--light-plate); }
+  .plate img { width: 128px; height: 128px; }
+  .bars { margin-top: 10px; display: grid; gap: 6px; }
+  .taskbar { height: 48px; border-radius: 8px; display: flex; align-items: center; gap: 18px; padding: 0 14px; }
+  .taskbar.dark { background: var(--taskbar-dark); }
+  .taskbar.light { background: var(--taskbar-light); }
+  .taskbar img { display: block; }
+  .taskbar .label { margin-left: auto; font-size: 11px; color: var(--faint); }
+  .scores { margin-top: 12px; font-size: 12px; color: var(--muted); display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 12px; }
+  .scores b { color: var(--text); font-weight: 600; }
+  section.final { margin-top: 64px; padding-top: 40px; border-top: 1px solid var(--stroke); }
+  .hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .hero .plate { aspect-ratio: auto; height: 380px; }
+  .hero .plate img { width: 300px; height: 300px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
+  .tile { border: 1px solid var(--stroke); border-radius: 12px; padding: 16px; display: grid; justify-items: center; align-content: center; gap: 10px; min-width: 150px; }
+  .tile img.v { width: 120px; height: 120px; }
+  .tile span { font-size: 12px; color: var(--muted); }
+  .tile.light span { color: #77716b; }
+  .sizes { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; padding: 18px; border-radius: 12px; }
+  .sizes figure { margin: 0; display: grid; justify-items: center; gap: 8px; }
+  .sizes figcaption { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .sizes.light figcaption { color: #8a8580; }
+  .px { image-rendering: pixelated; }
+  ul.why { color: var(--muted); margin: 0 0 8px; padding-left: 18px; max-width: 820px; }
+  ul.why li { margin: 4px 0; }
+  ul.why b { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>FluentFlow icon</h1>
+  <p class="lede">Six directions for FluentFlow's mark, each shown large on dark and light, and at real size on a
+    Windows taskbar (16, 20, 24, 32 and 48 px, drawn 1:1). Scored out of 5 on originality, recognisability, quality,
+    scalability, fit with FluentFlow and fit with Windows 11. The final mark, <i>Current</i>, grew out of the strongest
+    two and is shown at the end.</p>
+
+  <div class="grid" id="concepts"></div>
+
+  <section class="final">
+    <h3>Final: Current</h3>
+    <p class="note">FluentFlow's mirrored visualizer, five bars whose outline is a lens, with one wave of negative space
+      flowing through it. Above the wave the bars are warm light, below it they deepen. It keeps <i>Signal</i>'s
+      recognisability and its tie to the product (it is what FluentFlow draws on your taskbar) and borrows the single
+      flowing cut from <i>Tide</i> and <i>Drop</i>, which turns a generic equalizer into a mark of its own: sound,
+      and the flow through it. On the player's own dark surface.</p>
+    <ul class="why">
+      <li><b>Construction.</b> 256 grid; plate 216 with a 56 corner radius (the player card's proportion). Bars 22 wide
+        on a 36 pitch, heights 56 / 104 / 152 / 104 / 56. The wave is two cubic curves, cut 10 wide.</li>
+      <li><b>Colour.</b> Warm #FCD8C4 to #F0A88E above the wave, #DE8268 to #A9473A below, on #2E2433 to #141117. The
+        same peach as the player and the taskbar visualizer.</li>
+      <li><b>Small sizes.</b> At 16 to 32 px the cut would land on half pixels and crumble the short outer bars, so
+        those sizes are redrawn on the pixel grid: whole-pixel bars, with the wave kept as the line where warm meets
+        deep. From 40 px up the master scales as it is.</li>
+      <li><b>Tray.</b> A flat glyph, like other notification-area icons: the lens of bars alone, white for a dark taskbar,
+        near-black for a light one.</li>
+    </ul>
+
+    <div class="hero" style="margin-top:22px">
+      <div class="plate dark"><img src="final/FluentFlow.svg" alt="FluentFlow on dark"></div>
+      <div class="plate light"><img src="final/FluentFlow.svg" alt="FluentFlow on light"></div>
+    </div>
+
+    <h4>On the taskbar, 1:1</h4>
+    <div class="bars">
+      <div class="taskbar dark" id="final-dark"></div>
+      <div class="taskbar light" id="final-light"></div>
+    </div>
+
+    <h4>Pixel-tuned sizes, enlarged 6&times; with hard pixels</h4>
+    <div class="sizes dark" id="final-zoom-dark"></div>
+    <div class="sizes light" id="final-zoom-light" style="margin-top:10px"></div>
+
+    <h4>Variants</h4>
+    <div class="row">
+      <div class="tile dark"><img class="v" src="final/variants/FluentFlow-dark.svg" alt=""><span>Dark theme (app icon)</span></div>
+      <div class="tile light"><img class="v" src="final/variants/FluentFlow-light.svg" alt=""><span>Light theme</span></div>
+      <div class="tile dark"><img class="v" src="final/variants/FluentFlow-transparent.svg" alt=""><span>Transparent, on dark</span></div>
+      <div class="tile light"><img class="v" src="final/variants/FluentFlow-mono-black.svg" alt=""><span>Monochrome</span></div>
+      <div class="tile dark"><img class="v" src="final/variants/FluentFlow-mono-white.svg" alt=""><span>Monochrome, reversed</span></div>
+    </div>
+
+    <h4>Tray glyph</h4>
+    <div class="row">
+      <div class="sizes dark" id="tray-dark"></div>
+      <div class="sizes light" id="tray-light"></div>
+    </div>
+  </section>
+</main>
+<script>
+  const concepts = [
+    { file: "01-signal.svg", name: "Signal", scores: [2, 5, 4, 4, 5, 4], basis: true,
+      idea: "FluentFlow's own mirrored taskbar visualizer: five bars whose outline is a lens, on the player's dark surface.",
+      verdict: "Strongest fit and reads at every size, but on its own it is a plain equalizer. Became the basis of the final mark." },
+    { file: "02-tide.svg", name: "Tide", scores: [2, 4, 4, 3, 4, 4],
+      idea: "A record face on, split by one wave of negative space: warm light above, deep music below.",
+      verdict: "Too close to a famous split-globe drink logo, and its dark half sinks into a dark taskbar. Its single flowing cut lives on in the final." },
+    { file: "03-twist.svg", name: "Twist", scores: [4, 3, 4, 3, 3, 4],
+      idea: "One ribbon turning over on itself: warm front, deep back. The pinch is where one track flows into the next.",
+      verdict: "Elegant large, but reads as a bow tie at small sizes, and says little about music." },
+    { file: "04-horizon.svg", name: "Horizon", scores: [3, 3, 3, 2, 4, 3],
+      idea: "FluentFlow lives on the taskbar: the line is the taskbar, and sound rises off it like light at dawn.",
+      verdict: "A story more than a symbol; the arcs blur together below 32 px." },
+    { file: "05-loop.svg", name: "Loop", scores: [2, 3, 3, 3, 3, 3],
+      idea: "A single unbroken line crossing over itself, the way a playlist flows on, drawn over-and-under.",
+      verdict: "Reads as an infinity sign or a chain link; the crossing looks broken rather than woven." },
+    { file: "06-drop.svg", name: "Drop", scores: [4, 4, 4, 4, 3, 4],
+      idea: "Something fluid holding a sound: a wave of negative space runs through a single drop.",
+      verdict: "Clean and scales well, but a drop says water before it says music." }
+  ];
+  const labels = ["Original", "Recognisable", "Quality", "Scales", "FluentFlow", "Windows 11"];
+  const sizes = [16, 20, 24, 32, 48];
+  const grid = document.getElementById("concepts");
+  concepts.forEach((c, i) => {
+    const total = c.scores.reduce((a, b) => a + b, 0);
+    const icons = sizes.map(s => `<img src="concepts/${c.file}" width="${s}" height="${s}" alt="">`).join("");
+    grid.insertAdjacentHTML("beforeend", `
+      <article class="card${c.basis ? " basis" : ""}">
+        <div class="head"><span class="num">0${i + 1}</span><h2>${c.name}</h2>${c.basis ? '<span class="badge">Basis of the final</span>' : ""}</div>
+        <p class="idea">${c.idea}</p>
+        <p class="verdict">${c.verdict}</p>
+        <div class="plates">
+          <div class="plate dark"><img src="concepts/${c.file}" alt="${c.name} on dark"></div>
+          <div class="plate light"><img src="concepts/${c.file}" alt="${c.name} on light"></div>
+        </div>
+        <div class="bars">
+          <div class="taskbar dark">${icons}<span class="label">dark taskbar</span></div>
+          <div class="taskbar light">${icons}<span class="label">light taskbar</span></div>
+        </div>
+        <div class="scores">${labels.map((l, k) => `<div>${l} <b>${c.scores[k]}</b></div>`).join("")}</div>
+        <div class="scores" style="grid-template-columns:1fr"><div>Total <b>${total} / 30</b></div></div>
+      </article>`);
+  });
+
+  // The final mark: the exported PNGs, so what is shown is exactly what ships.
+  const finalSizes = [16, 20, 24, 32, 40, 48];
+  const png = s => `final/png/FluentFlow-${s}.png`;
+  for (const id of ["final-dark", "final-light"])
+    document.getElementById(id).innerHTML = finalSizes.map(s => `<img src="${png(s)}" width="${s}" height="${s}" alt="">`).join("")
+      + `<span class="label">${id.endsWith("dark") ? "dark" : "light"} taskbar</span>`;
+  for (const id of ["final-zoom-dark", "final-zoom-light"])
+    document.getElementById(id).innerHTML = [16, 20, 24, 32].map(s =>
+      `<figure><img class="px" src="${png(s)}" width="${s * 6}" height="${s * 6}" alt=""><figcaption>${s} px</figcaption></figure>`).join("");
+  for (const [id, theme] of [["tray-dark", "dark-taskbar"], ["tray-light", "light-taskbar"]])
+    document.getElementById(id).innerHTML = [16, 20, 24, 32].map(s =>
+      `<figure><img src="final/tray/FluentFlow-tray-${theme}-${s}.png" width="${s}" height="${s}" alt="">`
+      + `<img class="px" src="final/tray/FluentFlow-tray-${theme}-${s}.png" width="${s * 4}" height="${s * 4}" alt=""><figcaption>${s} px</figcaption></figure>`).join("");
+</script>
+</body>
+</html>

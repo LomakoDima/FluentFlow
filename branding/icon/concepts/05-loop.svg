@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Loop: a single unbroken line that crosses over itself and never ends, the way a playlist flows on. The crossing is
+       drawn over-and-under, so the line has a front and a back. -->
+  <defs>
+    <linearGradient id="l-line" gradientUnits="userSpaceOnUse" x1="40" y1="0" x2="218" y2="0">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="0.5" stop-color="#F0A88E"/><stop offset="1" stop-color="#C45F48"/>
+    </linearGradient>
+    <mask id="l-gap">
+      <rect width="256" height="256" fill="#FFFFFF"/>
+      <path d="M107.74,149.12 C115.36,143.84 122.4,136.8 128,128 C133.6,119.2 140.32,111.84 147.5,106.08"
+            fill="none" stroke="#000000" stroke-width="52" stroke-linecap="butt"/>
+    </mask>
+  </defs>
+  <path d="M128,128 C104,92 52,84 44,128 C36,172 100,172 128,128 C156,84 212,76 214,124 C216,168 160,176 128,128 Z"
+        fill="none" stroke="url(#l-line)" stroke-width="30" stroke-linejoin="round" mask="url(#l-gap)"/>
+  <path d="M107.74,149.12 C115.36,143.84 122.4,136.8 128,128 C133.6,119.2 140.32,111.84 147.5,106.08" fill="none" stroke="url(#l-line)" stroke-width="30"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Drop: something fluid holding a sound. A wave of negative space runs through a single drop. -->
+  <defs>
+    <linearGradient id="d-fill" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="0.5" stop-color="#F0A88E"/><stop offset="1" stop-color="#B4503F"/>
+    </linearGradient>
+    <mask id="d-wave">
+      <rect width="256" height="256" fill="#FFFFFF"/>
+      <path d="M 56,164 C 80,136 104,136 128,164 C 152,192 176,192 200,164" fill="none" stroke="#000000" stroke-width="16"
+            stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <path d="M128,22 C128,22 52,106 52,158 C52,200 86,234 128,234 C170,234 204,200 204,158 C204,106 128,22 128,22 Z"
+        fill="url(#d-fill)" mask="url(#d-wave)"/>
+</svg>

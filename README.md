@@ -1,3 +1,5 @@
+<img src="branding/icon/final/png/FluentFlow-128.png" alt="FluentFlow icon" width="96">
+
 # FluentFlow
 
 A small Windows media controller with a live audio visualizer that sits on the taskbar. It shows whatever
@@ -148,6 +150,8 @@ dotnet test FluentFlow.slnx
 | `FluentFlow/Services` | Media session, audio capture and FFT, system volume, theme, settings, startup registration |
 | `FluentFlow/SettingsWindow.xaml` | The settings window |
 | `FluentFlow/Resources` | Styles: the player, the Windows 11 flyout and menu, the settings design system |
+| `FluentFlow/Assets` | The app icon (built from `branding/icon`) |
+| `branding/icon` | The icon's design: concepts, the source geometry and every exported size ([details](branding/icon/README.md)) |
 | `FluentFlow.Tests` | Unit tests for the geometry and the settings |
 
 ## License

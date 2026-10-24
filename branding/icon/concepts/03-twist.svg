@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Twist: one ribbon turning over on itself. The front face is warm, the back face deep; the pinch in the middle is
+       the moment of transition, where one track flows into the next. -->
+  <defs>
+    <linearGradient id="w-front" gradientUnits="userSpaceOnUse" x1="36" y1="72" x2="128" y2="128">
+      <stop offset="0" stop-color="#FCD8C4"/><stop offset="0.7" stop-color="#F0A88E"/><stop offset="1" stop-color="#DE8268"/>
+    </linearGradient>
+    <linearGradient id="w-back" gradientUnits="userSpaceOnUse" x1="128" y1="128" x2="220" y2="184">
+      <stop offset="0" stop-color="#9E4A3C"/><stop offset="0.45" stop-color="#5A2E45"/><stop offset="1" stop-color="#2A1C2E"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-18 128 128)">
+    <path d="M128,128 C 104,76 36,70 34,124 C 32,170 88,176 128,128 Z" fill="url(#w-front)"/>
+    <path d="M128,128 C 152,180 220,186 222,132 C 224,86 168,80 128,128 Z" fill="url(#w-back)"/>
+  </g>
+</svg>
