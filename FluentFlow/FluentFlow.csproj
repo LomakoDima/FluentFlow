@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- The exe's icon in Explorer, Start, the taskbar and Alt+Tab (source: branding/icon). -->
     <ApplicationIcon>Assets\FluentFlow.ico</ApplicationIcon>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <Authors>DimaLab</Authors>
     <Product>FluentFlow</Product>
     <Description>Windows media controller with a taskbar audio visualizer</Description>
