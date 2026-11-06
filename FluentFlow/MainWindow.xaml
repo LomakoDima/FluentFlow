@@ -8,14 +8,25 @@
         FontFamily="{StaticResource PlayerTextFont}" Foreground="{StaticResource PlayerTextBrush}"
         UseLayoutRounding="True" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <!-- The card is 400 x 208; the transparent margin around it (MainWindow.ShadowMargin) holds its shadow. -->
-    <Grid Margin="24">
-        <!-- Depth. The shadow sits on its own plain shape, so it is drawn once and never again as the content moves. -->
-        <Border CornerRadius="18" Background="#FF0D0D10" IsHitTestVisible="False">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.46" Color="Black"
-                                  RenderingBias="Performance" />
-            </Border.Effect>
-        </Border>
+    <!-- Root slides and fades as the flyout opens and closes (MainWindow.ApplyMotion); the window itself stays put, so
+         the motion is drawn in step with the content instead of chasing window moves. -->
+    <Grid x:Name="Root" Margin="24">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="RootSlide" />
+        </Grid.RenderTransform>
+        <!-- Depth. The shadow sits on its own plain shape in a cached layer, so it is drawn once and only composited
+             while the flyout moves. -->
+        <Grid IsHitTestVisible="False">
+            <Grid.CacheMode>
+                <BitmapCache />
+            </Grid.CacheMode>
+            <Border CornerRadius="18" Background="#FF0D0D10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.46" Color="Black"
+                                      RenderingBias="Performance" />
+                </Border.Effect>
+            </Border>
+        </Grid>
 
         <Grid x:Name="Card" Width="400" Height="208">
             <Grid.Clip>
@@ -24,23 +35,29 @@
             <Border Background="{StaticResource PlayerSurfaceBrush}" />
 
             <!-- Ambient light: the cover itself, blurred far past recognition, glowing out from behind the cover and
-                 dying away before the text. Two layers, so a new cover can dissolve over the old one. -->
-            <Grid x:Name="Ambient" IsHitTestVisible="False" Opacity="0.62">
-                <Grid.OpacityMask>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#FF000000" Offset="0" />
-                        <GradientStop Color="#C0000000" Offset="0.3" />
-                        <GradientStop Color="#30000000" Offset="0.56" />
-                        <GradientStop Color="#00000000" Offset="0.82" />
-                    </LinearGradientBrush>
-                </Grid.OpacityMask>
-                <Grid.Effect>
-                    <BlurEffect Radius="64" KernelType="Gaussian" RenderingBias="Performance" />
-                </Grid.Effect>
-                <Image x:Name="AmbientPrevious" Stretch="UniformToFill" Width="300" Height="300"
-                       HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-62,-62,0,0" />
-                <Image x:Name="AmbientCurrent" Stretch="UniformToFill" Width="300" Height="300"
-                       HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-62,-62,0,0" />
+                 dying away before the text. Two layers, so a new cover can dissolve over the old one. The wide blur is
+                 the most expensive thing in the window, so it is cached: re-blurred only when the cover changes. -->
+            <Grid IsHitTestVisible="False">
+                <Grid.CacheMode>
+                    <BitmapCache />
+                </Grid.CacheMode>
+                <Grid x:Name="Ambient" IsHitTestVisible="False" Opacity="0.62">
+                    <Grid.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#FF000000" Offset="0" />
+                            <GradientStop Color="#C0000000" Offset="0.3" />
+                            <GradientStop Color="#30000000" Offset="0.56" />
+                            <GradientStop Color="#00000000" Offset="0.82" />
+                        </LinearGradientBrush>
+                    </Grid.OpacityMask>
+                    <Grid.Effect>
+                        <BlurEffect Radius="64" KernelType="Gaussian" RenderingBias="Performance" />
+                    </Grid.Effect>
+                    <Image x:Name="AmbientPrevious" Stretch="UniformToFill" Width="300" Height="300"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-62,-62,0,0" />
+                    <Image x:Name="AmbientCurrent" Stretch="UniformToFill" Width="300" Height="300"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-62,-62,0,0" />
+                </Grid>
             </Grid>
             <!-- Colour wash from the cover's palette (MainWindow sets the brush): carries the hue under the text, at a
                  darkness the palette controls, so the text never sits on a bright patch. -->
@@ -79,12 +96,17 @@
 
                 <!-- The cover: the largest thing in the player, lifted off the card by its own shadow. -->
                 <Grid x:Name="ArtworkFrame">
-                    <Border CornerRadius="12" Background="#FF1E1E23">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="22" ShadowDepth="6" Direction="270" Opacity="0.55" Color="Black"
-                                              RenderingBias="Performance" />
-                        </Border.Effect>
-                    </Border>
+                    <Grid>
+                        <Grid.CacheMode>
+                            <BitmapCache />
+                        </Grid.CacheMode>
+                        <Border CornerRadius="12" Background="#FF1E1E23">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="22" ShadowDepth="6" Direction="270" Opacity="0.55" Color="Black"
+                                                  RenderingBias="Performance" />
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
                     <Grid>
                         <Grid.Clip>
                             <RectangleGeometry Rect="0,0,140,140" RadiusX="12" RadiusY="12" />

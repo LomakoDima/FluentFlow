@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using FluentFlow.Services;
 
@@ -16,17 +17,34 @@ public sealed class TaskbarWidgetHost : IDisposable
 {
     private const double GapFromNeighbours = 4; // DIPs
     private const double CrossPadding = 2; // DIPs between the widget and the taskbar's long edges
-    private const int ScanEveryTicks = 3;
+    private const int ScanEveryTicks = 2; // the safety net; WinEvents (TaskbarChangeWatcher) do the quick reacting
+    // A new taskbar button appears a moment after its window and then animates in, so one change is followed by a few
+    // scans, quick at first (ms after the change).
+    private static readonly int[] BurstDelays = [50, 150, 320, 650, 1100];
+    // How long the widget takes to slide or resize to a new spot. Decelerate covers most of the way at the start, so
+    // it gets out of a new button's way at once and only settles softly.
+    private const int GlideMilliseconds = Motion.Slow;
     private readonly AppSettings _settings;
     private readonly MediaSessionService _media;
     private readonly AudioVisualizerService _visualizer;
     private readonly Dispatcher _dispatcher;
     private readonly TaskbarButtonScanner _scanner = new();
+    private readonly TaskbarChangeWatcher _watcher = new();
     private readonly DispatcherTimer _timer;
+    private readonly DispatcherTimer _burstTimer;
     private TaskbarWidgetWindow? _window;
     private IntPtr _tray;
     private IntPtr _hwnd;
-    private (int X, int Y, int Width, int Height) _lastBounds;
+    private int _burstStep;
+    private bool _layoutQueued;
+
+    // Where the widget is going (_target) and where it is right now (_current), in the taskbar's client pixels.
+    // They differ only while it glides from _glideFrom to _target.
+    private Bounds _target;
+    private Bounds _current;
+    private Bounds _glideFrom;
+    private readonly Stopwatch _glideClock = new();
+    private bool _gliding;
     private bool _shown;
     private bool _attached;
     private int _ticks;
@@ -43,6 +61,16 @@ public sealed class TaskbarWidgetHost : IDisposable
         // Polling is what keeps this robust: taskbar size, tray width, DPI and Explorer restarts have no common event.
         _timer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Normal, (_, _) => Tick(), dispatcher);
         _timer.Stop();
+        _burstTimer = new DispatcherTimer(DispatcherPriority.Normal, dispatcher);
+        _burstTimer.Tick += (_, _) => BurstTick();
+        // A scan that found the buttons moved re-places the widget right away instead of at the next poll.
+        _scanner.Changed += () => _dispatcher.BeginInvoke(DispatcherPriority.Normal, RequestLayout);
+        _watcher.ButtonsMayHaveChanged += (_, _) => StartBurst();
+        _watcher.TaskbarMoved += (_, _) =>
+        {
+            RequestLayout();
+            StartBurst();
+        };
     }
 
     public event EventHandler? Clicked;
@@ -113,8 +141,10 @@ public sealed class TaskbarWidgetHost : IDisposable
             _tray = tray;
             _hwnd = hwnd;
             _window = window;
-            _lastBounds = default;
+            StopGlide();
+            _target = _current = default;
             _shown = false;
+            _watcher.Watch(tray);
             _scanner.Reset();
             _ticks = 0;
             window.Clicked += (_, _) => Clicked?.Invoke(this, EventArgs.Empty);
@@ -132,13 +162,45 @@ public sealed class TaskbarWidgetHost : IDisposable
         }
     }
 
+    // Scans now and a few more times while the taskbar settles. A change during a burst starts it over, but never
+    // pushes back a scan that is already due, so a stream of events cannot starve the scans.
+    private void StartBurst()
+    {
+        if (_disposed || _window is null) return;
+        var due = _burstTimer.IsEnabled && _burstStep <= 1;
+        _burstStep = 0;
+        if (due) return;
+        _burstTimer.Stop();
+        _burstTimer.Interval = TimeSpan.FromMilliseconds(BurstDelays[0]);
+        _burstTimer.Start();
+    }
+
+    private void BurstTick()
+    {
+        if (_disposed || _window is null)
+        {
+            _burstTimer.Stop();
+            return;
+        }
+        _scanner.RequestScan(_tray);
+        if (++_burstStep >= BurstDelays.Length)
+        {
+            _burstTimer.Stop();
+            return;
+        }
+        _burstTimer.Interval = TimeSpan.FromMilliseconds(BurstDelays[_burstStep] - BurstDelays[_burstStep - 1]);
+    }
+
     private void RequestLayout()
     {
-        if (_disposed) return;
-        // Deferred so the view finishes updating itself first. Normal priority, not Background: the visualizer redraws
-        // every frame and would starve Background work, which made the widget lag one change behind.
+        if (_disposed || _layoutQueued) return;
+        _layoutQueued = true;
+        // Deferred so the view finishes updating itself first, and so a burst of requests is one layout. Normal
+        // priority, not Background: the visualizer redraws every frame and would starve Background work, which made
+        // the widget lag one change behind.
         _dispatcher.BeginInvoke(DispatcherPriority.Normal, () =>
         {
+            _layoutQueued = false;
             if (_disposed || _window is null) return;
             try { SetAttached(Layout()); }
             catch (Exception exception) { Debug.WriteLine($"Taskbar widget layout failed: {exception.Message}"); }
@@ -171,6 +233,7 @@ public sealed class TaskbarWidgetHost : IDisposable
 
         if (target is not { } rect)
         {
+            StopGlide();
             if (_shown) NativeMethods.SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0,
                 NativeMethods.SwpNoMove | NativeMethods.SwpNoSize | NativeMethods.SwpNoZOrder | NativeMethods.SwpNoActivate | NativeMethods.SwpHideWindow);
             _shown = false;
@@ -179,19 +242,83 @@ public sealed class TaskbarWidgetHost : IDisposable
 
         var origin = new NativePoint { X = (int)rect.X, Y = (int)rect.Y };
         NativeMethods.ScreenToClient(_tray, ref origin);
-        var bounds = (origin.X, origin.Y, (int)rect.Width, (int)rect.Height);
+        var bounds = new Bounds(origin.X, origin.Y, (int)rect.Width, (int)rect.Height);
+
+        if (!_shown)
+        {
+            // Appearing: straight to its spot, where the window's own entrance (a fade and a little growth) plays.
+            _target = bounds;
+            _window!.Show();
+            Place(bounds, raise: true);
+            _shown = true;
+            return true;
+        }
+
+        if (bounds != _target)
+        {
+            MoveTo(bounds);
+            return true;
+        }
 
         // Re-assert the top of the taskbar's child z-order when something (e.g. a fresh composition bridge) covers us.
-        var covered = NativeMethods.GetWindow(_tray, NativeMethods.GwChild) != _hwnd;
-        if (bounds == _lastBounds && !covered && _shown) return true;
-
-        if (!_shown) _window!.Show();
-        // No SWP_NOZORDER here: it would silently turn HWND_TOP into a no-op.
-        NativeMethods.SetWindowPos(_hwnd, NativeMethods.HwndTop, origin.X, origin.Y, bounds.Item3, bounds.Item4,
-            NativeMethods.SwpNoActivate | NativeMethods.SwpShowWindow);
-        _lastBounds = bounds;
-        _shown = true;
+        if (!_gliding && NativeMethods.GetWindow(_tray, NativeMethods.GwChild) != _hwnd) Place(_current, raise: true);
         return true;
+    }
+
+    // Slides and resizes to a new spot from wherever the widget is now, so a target that changes mid-way (a slider
+    // being dragged, buttons still animating in) is followed without a jump. A spot that does not touch the current
+    // one (another alignment, the taskbar turned) is not travelled to across the icons: the widget reappears there.
+    private void MoveTo(Bounds bounds)
+    {
+        _target = bounds;
+        if (!Motion.Enabled || !_current.Touches(bounds) || _current.IsVertical != bounds.IsVertical)
+        {
+            StopGlide();
+            Place(bounds, raise: true);
+            if (Motion.Enabled) _window!.PlayAppear();
+            return;
+        }
+
+        _glideFrom = _current;
+        _glideClock.Restart();
+        if (_gliding) return;
+        _gliding = true;
+        CompositionTarget.Rendering += OnGlideFrame;
+    }
+
+    private void OnGlideFrame(object? sender, EventArgs e)
+    {
+        if (_disposed || _hwnd == IntPtr.Zero)
+        {
+            StopGlide();
+            return;
+        }
+        var progress = Math.Min(1, _glideClock.Elapsed.TotalMilliseconds / GlideMilliseconds);
+        if (progress >= 1)
+        {
+            StopGlide();
+            Place(_target, raise: true);
+            return;
+        }
+        var step = Bounds.Lerp(_glideFrom, _target, Motion.Decelerate.Ease(progress));
+        if (step != _current) Place(step, raise: false);
+    }
+
+    private void StopGlide()
+    {
+        if (!_gliding) return;
+        _gliding = false;
+        CompositionTarget.Rendering -= OnGlideFrame;
+    }
+
+    // raise: also put the widget back on top of the taskbar's children. Left out for the frames of a glide, as a
+    // z-order change makes each of them more expensive.
+    private void Place(Bounds bounds, bool raise)
+    {
+        // With raise, no SWP_NOZORDER: it would silently turn HWND_TOP into a no-op.
+        var flags = NativeMethods.SwpNoActivate | NativeMethods.SwpShowWindow | (raise ? 0 : NativeMethods.SwpNoZOrder);
+        NativeMethods.SetWindowPos(_hwnd, NativeMethods.HwndTop, bounds.X, bounds.Y, bounds.Width, bounds.Height, flags);
+        _current = bounds;
     }
 
     // True when a vertical taskbar is on the right half of its monitor's work area (so the work area is to its left).
@@ -212,6 +339,8 @@ public sealed class TaskbarWidgetHost : IDisposable
 
     private void ForgetWindow()
     {
+        StopGlide();
+        _burstTimer.Stop();
         _window = null;
         _hwnd = IntPtr.Zero;
         _shown = false;
@@ -231,7 +360,25 @@ public sealed class TaskbarWidgetHost : IDisposable
         if (_disposed) return;
         _disposed = true;
         _timer.Stop();
+        _burstTimer.Stop();
+        _watcher.Dispose();
         DropWindow();
+    }
+
+    // A rectangle in whole pixels, as SetWindowPos takes it.
+    private readonly record struct Bounds(int X, int Y, int Width, int Height)
+    {
+        public bool IsVertical => Height > Width;
+
+        // Overlapping or edge to edge.
+        public bool Touches(Bounds other)
+            => X <= other.X + other.Width && other.X <= X + Width && Y <= other.Y + other.Height && other.Y <= Y + Height;
+
+        public static Bounds Lerp(Bounds from, Bounds to, double t)
+        {
+            static int Mix(int a, int b, double t) => (int)Math.Round(a + (b - a) * t);
+            return new Bounds(Mix(from.X, to.X, t), Mix(from.Y, to.Y, t), Mix(from.Width, to.Width, t), Mix(from.Height, to.Height, t));
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

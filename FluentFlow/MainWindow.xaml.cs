@@ -27,11 +27,11 @@ public partial class MainWindow : Window
     private bool _widgetMode;
     private bool _exiting;
 
-    // Where the flyout rests and how it moves in and out. Everything is in physical pixels, as SetWindowPos wants.
+    // Where the flyout rests (physical pixels, as SetWindowPos wants) and which way it moves in and out. The window is
+    // put there once; the slide itself moves the content inside it (DIPs), which stays in step with the rendering.
     private Point _rest;
     private Vector _towardTaskbar;
-    private double _slide;
-    private double _offset;          // 0: at rest, 1: fully displaced towards the taskbar
+    private double _offset;         // 0: at rest, 1: fully displaced towards the taskbar
     private double _fromOffset, _toOffset, _fromOpacity;
     private int _motionMilliseconds;
     private IEasingFunction _motionEasing = Motion.Decelerate;
@@ -126,6 +126,12 @@ public partial class MainWindow : Window
         if (!IsVisible)
         {
             PlaceNear(widgetPixels, scale);
+            if (_anchored)
+            {
+                var hwnd = new WindowInteropHelper(this).EnsureHandle();
+                SetWindowPos(hwnd, IntPtr.Zero, (int)Math.Round(_rest.X), (int)Math.Round(_rest.Y), 0, 0,
+                    SwpNoSize | SwpNoZOrder | SwpNoActivate);
+            }
             _offset = 1;
             ApplyMotion(1, 0);
             Show();
@@ -151,7 +157,6 @@ public partial class MainWindow : Window
             GapFromWidget * scale, GapFromWidget * scale);
         _anchored = true;
         _rest = placement.Location - new Vector(margin, margin);
-        _slide = SlideDistance * scale;
         // It grows away from the taskbar, so it starts out displaced towards it.
         _towardTaskbar = placement.Side switch
         {
@@ -192,7 +197,7 @@ public partial class MainWindow : Window
         }
         _fromOffset = _offset;
         _toOffset = toOffset;
-        _fromOpacity = Opacity;
+        _fromOpacity = Root.Opacity;
         _motionMilliseconds = milliseconds;
         _motionEasing = easing;
         _motionDone = done;
@@ -230,12 +235,11 @@ public partial class MainWindow : Window
     private void ApplyMotion(double offset, double opacity)
     {
         _offset = offset;
-        Opacity = Math.Clamp(opacity, 0, 1);
-        if (!_anchored) return;
-        var hwnd = new WindowInteropHelper(this).EnsureHandle();
-        var x = _rest.X + _towardTaskbar.X * _slide * offset;
-        var y = _rest.Y + _towardTaskbar.Y * _slide * offset;
-        SetWindowPos(hwnd, IntPtr.Zero, (int)Math.Round(x), (int)Math.Round(y), 0, 0, SwpNoSize | SwpNoZOrder | SwpNoActivate);
+        Root.Opacity = Math.Clamp(opacity, 0, 1);
+        // The shadow margin around the card is wider than the slide, so the card never leaves the window.
+        var travel = _anchored ? SlideDistance * offset : 0;
+        RootSlide.X = _towardTaskbar.X * travel;
+        RootSlide.Y = _towardTaskbar.Y * travel;
     }
 
     protected override void OnClosing(CancelEventArgs e)

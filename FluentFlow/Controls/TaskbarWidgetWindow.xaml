@@ -22,6 +22,12 @@
                         <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="14" />
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Repository" Style="{StaticResource FlyoutMenuItemStyle}" Click="Repository_Click"
+                          ToolTip="Open FluentFlow on GitHub">
+                    <MenuItem.Icon>
+                        <TextBlock Text="&#xE943;" FontFamily="Segoe Fluent Icons" FontSize="14" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem x:Name="StartupItem" Header="Start with Windows" IsCheckable="True"
                           Style="{StaticResource FlyoutMenuItemStyle}" Click="Startup_Click" />
                 <Separator Style="{StaticResource FlyoutMenuSeparatorStyle}" />

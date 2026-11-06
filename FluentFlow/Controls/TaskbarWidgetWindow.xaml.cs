@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,6 +12,8 @@ public partial class TaskbarWidgetWindow : Window
     // The taskbar thickness the widget is designed for (a standard Windows 11 taskbar is 48 px at 100%): its height on a
     // taskbar at the top or bottom, its width on one at the left or right edge.
     public const double WidgetHeight = 36;
+
+    private const string RepositoryUrl = "https://github.com/LomakoDima/FluentFlow";
 
     private readonly TaskbarWidgetView _view;
 
@@ -31,9 +34,12 @@ public partial class TaskbarWidgetWindow : Window
         Surface.MouseLeave += (_, _) => Motion.FadeTo(plate, 0, Motion.Normal);
         IsVisibleChanged += (_, e) =>
         {
-            if ((bool)e.NewValue) Motion.Enter(Surface, scale: 0.94, milliseconds: Motion.Slow);
+            if ((bool)e.NewValue) PlayAppear();
         };
     }
+
+    // The widget's entrance: it fades in while growing into place. Also played when it moves somewhere new at once.
+    public void PlayAppear() => Motion.Enter(Surface, scale: 0.94, milliseconds: Motion.Slow);
 
     public event EventHandler? Clicked;
     public event EventHandler? SettingsRequested;
@@ -49,6 +55,13 @@ public partial class TaskbarWidgetWindow : Window
     private void Surface_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => Clicked?.Invoke(this, EventArgs.Empty);
     private void Open_Click(object sender, RoutedEventArgs e) => Clicked?.Invoke(this, EventArgs.Empty);
     private void Settings_Click(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke(this, EventArgs.Empty);
+
+    // Opens the project's page in the default browser.
+    private void Repository_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo(RepositoryUrl) { UseShellExecute = true }); }
+        catch (Exception exception) { Debug.WriteLine($"Could not open the repository: {exception.Message}"); }
+    }
 
     // The registry is the source of truth: Task Manager can switch the entry off behind our back.
     private void ContextMenu_Opened(object sender, RoutedEventArgs e) => StartupItem.IsChecked = StartupRegistration.IsEnabled;
